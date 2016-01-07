@@ -5,11 +5,12 @@ import json
 
 import click
 import requests
-from storm.locals import *
 
-url_prefix = "http://192.168.21.48:8080"
+# url_prefix = "http://192.168.21.48:8080"
+url_prefix = "https://iot.seeed.cc"
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
+
 
 class Wio(object):
 
@@ -20,7 +21,8 @@ class Wio(object):
 
     def set_config(self, key, value):
         self.config[key] = value
-        cur_dir = os.path.split(os.path.realpath(__file__))[0]
+        # cur_dir = os.path.split(os.path.realpath(__file__))[0]
+        cur_dir = os.path.abspath(os.path.expanduser("~/.wio"))
         db_file_path = '%s/config.json' % cur_dir
         open("%s/config.json"%cur_dir,"w").write(json.dumps(self.config))
         if self.verbose:
@@ -40,7 +42,7 @@ pass_wio = click.make_pass_decorator(Wio, ensure=True)
 #               metavar='KEY VALUE', help='Overrides a config key/value pair.')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enables verbose mode.')
-@click.version_option('0.0.1')
+@click.version_option('0.0.3')
 @click.pass_context
 def cli(ctx, verbose):
     """Wio is a command line tool that showcases how to build complex
@@ -55,7 +57,12 @@ def cli(ctx, verbose):
     ctx.obj = Wio()
     ctx.obj.verbose = verbose
     # config.json
-    cur_dir = os.path.split(os.path.realpath(__file__))[0]
+    # cur_dir = os.path.split(os.path.realpath(__file__))[0]
+    cur_dir = os.path.abspath(os.path.expanduser("~/.wio"))
+    if not os.path.exists(cur_dir):
+        text = {"email":"", "token":""}
+        os.mkdir(cur_dir)
+        open("%s/config.json"%cur_dir,"w").write(json.dumps(text))
     db_file_path = '%s/config.json' % cur_dir
     config = json.load(open(db_file_path))
     ctx.obj.config = config
@@ -71,6 +78,7 @@ def login(wio, email, password):
     params = {"email":email, "password":password}
     r = requests.post("%s%s" %(url_prefix, login_endpoint), params=params)
     token = r.json().get("token", None)
+    wio.set_config('email', email)
     wio.set_config('token', token)
     if token:
         click.echo("login success!")
@@ -95,7 +103,9 @@ def list(wio):
 @pass_wio
 def state(wio):
     '''login state'''
+    email = wio.config["email"]
     token = wio.config["token"]
+    click.echo("email: %s" %email)
     click.echo("token: %s" %token)
 
 # @cli.command()
