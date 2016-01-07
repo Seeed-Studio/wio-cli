@@ -7,9 +7,10 @@ import click
 import requests
 
 # url_prefix = "http://192.168.21.48:8080"
-url_prefix = "https://iot.seeed.cc"
+# url_prefix = "https://iot.seeed.cc"
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
+well_known_endpoint = "/v1/node/.well-known"
 
 
 class Wio(object):
@@ -42,7 +43,7 @@ pass_wio = click.make_pass_decorator(Wio, ensure=True)
 #               metavar='KEY VALUE', help='Overrides a config key/value pair.')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enables verbose mode.')
-@click.version_option('0.0.3')
+@click.version_option('0.0.4')
 @click.pass_context
 def cli(ctx, verbose):
     """Wio is a command line tool that showcases how to build complex
@@ -67,15 +68,51 @@ def cli(ctx, verbose):
     config = json.load(open(db_file_path))
     ctx.obj.config = config
 
+def login_server(ctx, param, value):
+    # print pass_wio.config
+    wio = ctx.obj
+    config = wio.config
+    mserver = config.get("mserver", None)
+    if mserver:
+        click.echo("Current mserver is: %s" %mserver)
+        return
+
+    # print "prompt input"
+    while True:
+        click.echo("1. International: https://iot.seeed.cc")
+        click.echo("2.         China: https://cn.iot.seeed.cc")
+        click.echo("3.      Customer: next input your server ip")
+        server = raw_input("choice main server:")
+        if server == "1":
+            wio.set_config("mserver","https://iot.seeed.cc")
+            return
+        elif server == "2":
+            wio.set_config("mserver","https://cn.iot.seeed.cc")
+            return
+        elif server == "3":
+            break
+        else:
+            continue
+
+    server_ip = raw_input("Input main server ip:")
+    wio.set_config("mserver", "http://%s:8080" %server_ip)
+    wio.set_config("mserver_ip", server_ip)
+
+    # if not value or ctx.resilient_parsing:
+    #     print "121"
+    #     return
+    # click.echo('Version 1.0')
+    # ctx.exit()
+
 @cli.command()
+@click.option('--mserver', callback=login_server, expose_value=False, help='The developer\'s email address', is_eager=True)
 @click.option('--email', prompt='email', help='The developer\'s email address')
-@click.option('--password', prompt='password', hide_input=True, help='The login password.')
+@click.option('--password', prompt='password', hide_input=True, help='The login password.',)
 @pass_wio
 def login(wio, email, password):
     '''login with your wio link account'''
-    # click.echo(email)
-    # click.echo(password)
     params = {"email":email, "password":password}
+    url_prefix = wio.config.get("mserver", None)
     r = requests.post("%s%s" %(url_prefix, login_endpoint), params=params)
     token = r.json().get("token", None)
     wio.set_config('email', email)
@@ -89,24 +126,63 @@ def login(wio, email, password):
 @cli.command()
 @pass_wio
 def list(wio):
-    '''List wio links'''
+    '''List WioLinks and API'''
     token = wio.config["token"]
     params = {"access_token":token}
+    url_prefix = wio.config.get("mserver", None)
     r = requests.get("%s%s" %(url_prefix, node_list_endpoint), params=params)
-    json = r.json()
-    # print json
-    click.echo("%10s %6s %s" %("name", "on/off", "node_key"))
-    for n in json["nodes"]:
-        click.echo("%10s %6s %s" %(n["name"], n["online"], n["node_key"]))
+    json_response = r.json()
+
+    for n in json_response["nodes"]:
+        if n["online"]:
+            onoff = "online"
+        else:
+            onoff = "offline"
+        click.echo("  wiolink[%s], token[%s] is %s" %(n["name"], n["node_key"], onoff))
+        if n["online"]:
+            # click.echo("  API:")
+            params = {"access_token":n["node_key"]}
+            r = requests.get("%s%s" %(url_prefix, well_known_endpoint), params=params)
+            well_response = r.json()
+            well_known = well_response["well_known"]
+            for api in well_known:
+                click.echo("    " + api)
+            click.echo()
+
 
 @cli.command()
 @pass_wio
 def state(wio):
     '''login state'''
-    email = wio.config["email"]
-    token = wio.config["token"]
+    email = wio.config.get("email",None)
+    mserver = wio.config.get("mserver",None)
+    token = wio.config.get("token",None)
     click.echo("email: %s" %email)
     click.echo("token: %s" %token)
+    click.echo("mserver: %s" %mserver)
+
+@cli.command()
+# @click.argument('mserver')
+# @click.argument('sdf')
+@click.option('--mserver', default= None, help='Set main server ip, such as 192.168.21.48')
+@pass_wio
+def set(wio, mserver):
+    # click.echo(mserver)
+    if mserver:
+        wio.set_config('mserver', mserver)
+
+
+@cli.command()
+# @click.option('--hash-type', type=click.Choice(['md5', 'sha1']))
+def hello():
+    # click.echo(hash_type)
+    choices = ["12", "123"]
+    click.Choice(choices)
+    value = click.prompt('Please enter a valid integer', type=int)
+    if click.confirm('Do you want to continue?'):
+        click.echo('Well done!')
+
+
 
 # @cli.command()
 # @click.argument('src')
