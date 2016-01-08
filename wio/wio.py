@@ -6,8 +6,8 @@ import json
 import click
 import requests
 
-# url_prefix = "http://192.168.21.48:8080"
-# url_prefix = "https://iot.seeed.cc"
+# api_prefix = "http://192.168.21.48:8080"
+# api_prefix = "https://iot.seeed.cc"
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
 well_known_endpoint = "/v1/node/.well-known"
@@ -43,7 +43,7 @@ pass_wio = click.make_pass_decorator(Wio, ensure=True)
 #               metavar='KEY VALUE', help='Overrides a config key/value pair.')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enables verbose mode.')
-@click.version_option('0.0.4')
+@click.version_option('0.0.5')
 @click.pass_context
 def cli(ctx, verbose):
     """Wio is a command line tool that showcases how to build complex
@@ -79,9 +79,9 @@ def login_server(ctx, param, value):
 
     # print "prompt input"
     while True:
-        click.echo("1. International: https://iot.seeed.cc")
-        click.echo("2.         China: https://cn.iot.seeed.cc")
-        click.echo("3.      Customer: next input your server ip")
+        click.echo("  1. International[https://iot.seeed.cc]")
+        click.echo("  2. China[https://cn.iot.seeed.cc]")
+        click.echo("  3. Customer")
         server = raw_input("choice main server:")
         if server == "1":
             wio.set_config("mserver","https://iot.seeed.cc")
@@ -98,12 +98,6 @@ def login_server(ctx, param, value):
     wio.set_config("mserver", "http://%s:8080" %server_ip)
     wio.set_config("mserver_ip", server_ip)
 
-    # if not value or ctx.resilient_parsing:
-    #     print "121"
-    #     return
-    # click.echo('Version 1.0')
-    # ctx.exit()
-
 @cli.command()
 @click.option('--mserver', callback=login_server, expose_value=False, help='The developer\'s email address', is_eager=True)
 @click.option('--email', prompt='email', help='The developer\'s email address')
@@ -112,25 +106,30 @@ def login_server(ctx, param, value):
 def login(wio, email, password):
     '''login with your wio link account'''
     params = {"email":email, "password":password}
-    url_prefix = wio.config.get("mserver", None)
-    r = requests.post("%s%s" %(url_prefix, login_endpoint), params=params)
+    api_prefix = wio.config.get("mserver", None)
+    r = requests.post("%s%s" %(api_prefix, login_endpoint), params=params)
     token = r.json().get("token", None)
     wio.set_config('email', email)
     wio.set_config('token', token)
     if token:
         click.echo("login success!")
     else:
-        click.echo(r.json().get("error", None))
-
+        error = r.json().get("error", None)
+        if not error:
+            error = r.json().get("msg", None)
+        click.echo(error)
 
 @cli.command()
 @pass_wio
 def list(wio):
     '''List WioLinks and API'''
-    token = wio.config["token"]
+    token = wio.config.get("token", None)
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix or not token:
+        click.echo("Please login [wio login]")
+        return
     params = {"access_token":token}
-    url_prefix = wio.config.get("mserver", None)
-    r = requests.get("%s%s" %(url_prefix, node_list_endpoint), params=params)
+    r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params)
     json_response = r.json()
 
     for n in json_response["nodes"]:
@@ -142,13 +141,45 @@ def list(wio):
         if n["online"]:
             # click.echo("  API:")
             params = {"access_token":n["node_key"]}
-            r = requests.get("%s%s" %(url_prefix, well_known_endpoint), params=params)
+            r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params)
             well_response = r.json()
-            well_known = well_response["well_known"]
+            if api_prefix == "https://cn.iot.seeed.cc":
+                well_known = well_response["msg"]
+            else:
+                well_known = well_response["well_known"]
             for api in well_known:
                 click.echo("    " + api)
             click.echo()
+    click.echo()
 
+@cli.command()
+@click.argument('token')
+@click.argument('method')
+@click.argument('endpoint')
+@click.option('--xchange', help='xchange server url')
+@pass_wio
+def call(wio, method, endpoint, token, xchange):
+    '''
+    request api test, return json.
+    example: wio call 98dd464bd268d4dc4cb9b37e4e779313 GET /v1/node/GroveTempHumProD0/temperature
+    '''
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix:
+        click.echo("Please login [wio login]")
+        return
+    api = "%s%s?access_token=%s" %(api_prefix, endpoint, token)
+    print api
+    if method == "GET":
+        r = requests.get(api)
+    elif method == "POST":
+        r = requests.post(api)
+    else:
+        click.echo("API method [%s] is wrong, should be GET or POST." %method)
+        return
+    try:
+        click.echo(r.json())
+    except Exception as e:
+        click.echo("Error[%s], API[%s]" %(e, api))
 
 @cli.command()
 @pass_wio
@@ -162,25 +193,44 @@ def state(wio):
     click.echo("mserver: %s" %mserver)
 
 @cli.command()
-# @click.argument('mserver')
+@click.argument('subcommand')
 # @click.argument('sdf')
-@click.option('--mserver', default= None, help='Set main server ip, such as 192.168.21.48')
+# @click.option('--mserver', default= None, help='Set main server ip, such as 192.168.21.48')
 @pass_wio
-def set(wio, mserver):
-    # click.echo(mserver)
-    if mserver:
-        wio.set_config('mserver', mserver)
+def set(wio, subcommand):
+    '''
+    subcommand: mserver
+    '''
+    if subcommand == "mserver":
+        while True:
+            click.echo("  1. International[https://iot.seeed.cc]")
+            click.echo("  2. China[https://cn.iot.seeed.cc]")
+            click.echo("  3. Customer")
+            server = raw_input("choice main server:")
+            if server == "1":
+                wio.set_config("mserver","https://iot.seeed.cc")
+                return
+            elif server == "2":
+                wio.set_config("mserver","https://cn.iot.seeed.cc")
+                return
+            elif server == "3":
+                break
+            else:
+                continue
 
+        server_ip = raw_input("Input main server ip:")
+        wio.set_config("mserver", "http://%s:8080" %server_ip)
+        wio.set_config("mserver_ip", server_ip)
 
-@cli.command()
-# @click.option('--hash-type', type=click.Choice(['md5', 'sha1']))
-def hello():
-    # click.echo(hash_type)
-    choices = ["12", "123"]
-    click.Choice(choices)
-    value = click.prompt('Please enter a valid integer', type=int)
-    if click.confirm('Do you want to continue?'):
-        click.echo('Well done!')
+# @cli.command()
+# @click.option('--hash-type', '-h', 'type',  prompt='123', type=click.Choice(['md5', 'sha1']))
+# def hello(type):
+#     click.echo(type)
+#     choices = ["12", "123"]
+#     click.Choice(choices)
+#     value = click.prompt('Please enter a valid integer', type=int)
+#     if click.confirm('Do you want to continue?'):
+#         click.echo('Well done!')
 
 
 
