@@ -2,15 +2,22 @@ import os
 import sys
 import posixpath
 import json
+import time
+# import glob
+import serial
+import serial_list
 
 import click
 import requests
 
+# from serial_list
 # api_prefix = "http://192.168.21.48:8080"
 # api_prefix = "https://iot.seeed.cc"
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
 well_known_endpoint = "/v1/node/.well-known"
+nodes_create_endpoint = "/v1/nodes/create"
+nodes_rename_endpoint = "/v1/nodes/rename"
 
 
 class Wio(object):
@@ -43,7 +50,7 @@ pass_wio = click.make_pass_decorator(Wio, ensure=True)
 #               metavar='KEY VALUE', help='Overrides a config key/value pair.')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enables verbose mode.')
-@click.version_option('0.0.5')
+@click.version_option('0.0.8')
 @click.pass_context
 def cli(ctx, verbose):
     """Wio is a command line tool that showcases how to build complex
@@ -132,6 +139,7 @@ def list(wio):
     r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params)
     json_response = r.json()
 
+    # click.echo(json_response)
     for n in json_response["nodes"]:
         if n["online"]:
             onoff = "online"
@@ -141,12 +149,11 @@ def list(wio):
         if n["online"]:
             # click.echo("  API:")
             params = {"access_token":n["node_key"]}
+            # click.echo("%s%s" %(api_prefix, well_known_endpoint))
             r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params)
             well_response = r.json()
-            if api_prefix == "https://cn.iot.seeed.cc":
-                well_known = well_response["msg"]
-            else:
-                well_known = well_response["well_known"]
+            # click.echo(well_response)
+            well_known = well_response["well_known"]
             for api in well_known:
                 click.echo("    " + api)
             click.echo()
@@ -168,7 +175,7 @@ def call(wio, method, endpoint, token, xchange):
         click.echo("Please login [wio login]")
         return
     api = "%s%s?access_token=%s" %(api_prefix, endpoint, token)
-    print api
+    # print api
     if method == "GET":
         r = requests.get(api)
     elif method == "POST":
@@ -209,9 +216,11 @@ def set(wio, subcommand):
             server = raw_input("choice main server:")
             if server == "1":
                 wio.set_config("mserver","https://iot.seeed.cc")
+                wio.set_config("mserver_ip","45.79.4.239")
                 return
             elif server == "2":
                 wio.set_config("mserver","https://cn.iot.seeed.cc")
+                wio.set_config("mserver_ip","120.25.216.117")
                 return
             elif server == "3":
                 break
@@ -222,115 +231,122 @@ def set(wio, subcommand):
         wio.set_config("mserver", "http://%s:8080" %server_ip)
         wio.set_config("mserver_ip", server_ip)
 
-# @cli.command()
-# @click.option('--hash-type', '-h', 'type',  prompt='123', type=click.Choice(['md5', 'sha1']))
-# def hello(type):
-#     click.echo(type)
-#     choices = ["12", "123"]
-#     click.Choice(choices)
-#     value = click.prompt('Please enter a valid integer', type=int)
-#     if click.confirm('Do you want to continue?'):
-#         click.echo('Well done!')
 
+@cli.command()
+@pass_wio
+def setup(wio):
+    click.echo("TIP:1. main server can connect. 2. plug usb connect!")
+    if not click.confirm('Do you want to continue?', default=True):
+        click.echo('Quit setup!')
 
+    token = wio.config.get("token", None)
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix or not token:
+        click.echo("Please login [wio login]")
+        return
+    params = {"name":"node000","access_token":token}
+    r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params)
+    json_response = r.json()
 
-# @cli.command()
-# @click.argument('src')
-# @click.argument('dest', required=False)
-# @click.option('--shallow/--deep', default=False,
-#               help='Makes a checkout shallow or deep.  Deep by default.')
-# @click.option('--rev', '-r', default='HEAD',
-#               help='Clone a specific revision instead of HEAD.')
-# @pass_wio
-# def clone(wio, src, dest, shallow, rev):
-#     """Clones a wiository.
-#
-#     This will clone the wiository at SRC into the folder DEST.  If DEST
-#     is not provided this will automatically use the last path component
-#     of SRC and create that folder.
-#     """
-#     if dest is None:
-#         dest = posixpath.split(src)[-1] or '.'
-#     click.echo('Cloning wio %s to %s' % (src, os.path.abspath(dest)))
-#     wio.home = dest
-#     if shallow:
-#         click.echo('Making shallow checkout')
-#     click.echo('Checking out revision %s' % rev)
-#
-#
-# @cli.command()
-# @click.confirmation_option()
-# @pass_wio
-# def delete(wio):
-#     """Deletes a wiository.
-#
-#     This will throw away the current wiository.
-#     """
-#     click.echo('Destroying wio %s' % wio.home)
-#     click.echo('Deleted!')
-#
-#
-# @cli.command()
-# @click.option('--username', prompt=True,
-#               help='The developer\'s shown username.')
-# @click.option('--email', prompt='E-Mail',
-#               help='The developer\'s email address')
-# @click.password_option(help='The login password.')
-# @pass_wio
-# def setuser(wio, username, email, password):
-#     """Sets the user credentials.
-#
-#     This will override the current user config.
-#     """
-#     wio.set_config('username', username)
-#     wio.set_config('email', email)
-#     wio.set_config('password', '*' * len(password))
-#     click.echo('Changed credentials.')
-#
-#
-# @cli.command()
-# @click.option('--message', '-m', multiple=True,
-#               help='The commit message.  If provided multiple times each '
-#               'argument gets converted into a new line.')
-# @click.argument('files', nargs=-1, type=click.Path())
-# @pass_wio
-# def commit(wio, files, message):
-#     """Commits outstanding changes.
-#
-#     Commit changes to the given files into the wiository.  You will need to
-#     "wio push" to push up your changes to other wiositories.
-#
-#     If a list of files is omitted, all changes wiorted by "wio status"
-#     will be committed.
-#     """
-#     if not message:
-#         marker = '# Files to be committed:'
-#         hint = ['', '', marker, '#']
-#         for file in files:
-#             hint.append('#   U %s' % file)
-#         message = click.edit('\n'.join(hint))
-#         if message is None:
-#             click.echo('Aborted!')
-#             return
-#         msg = message.split(marker)[0].rstrip()
-#         if not msg:
-#             click.echo('Aborted! Empty commit message')
-#             return
-#     else:
-#         msg = '\n'.join(message)
-#     click.echo('Files to be committed: %s' % (files,))
-#     click.echo('Commit message:\n' + msg)
-#
-#
-# @cli.command(short_help='Copies files.')
-# @click.option('--force', is_flag=True,
-#               help='forcibly copy over an existing managed file')
-# @click.argument('src', nargs=-1, type=click.Path())
-# @click.argument('dst', type=click.Path())
-# @pass_wio
-# def copy(wio, src, dst, force):
-#     """Copies one or multiple files to a new location.  This copies all
-#     files from SRC to DST.
-#     """
-#     for fn in src:
-#         click.echo('Copy from %s -> %s' % (fn, dst))
+    node_key = json_response["node_key"]
+    node_sn = json_response["node_sn"]
+
+    # list serial
+    ports = serial_list.serial_ports()
+    # click.echo(ports)
+    # if serial <= 1, =0
+    count = len(ports)
+    port = None
+    if count == 0:
+        pass #scan
+    elif count == 1:
+        pass
+        port = ports[0]
+    elif count >= 2:
+        for x in range(len(ports)):
+            click.echo("[%s]: %s" %(x, ports[x]))
+            # multiple serial
+        value = click.prompt('Please choice a device', type=int)
+        port = ports[x]
+
+    if not port:
+        click.echo("No connect device!")
+        return
+    click.echo("conncet to %s" %port)
+    click.echo("TIP:1. device must on config mode!")
+    if not click.confirm('Do you want to continue?', default=True):
+        click.echo('Quit setup!')
+
+    # if click.confirm('Do you want change your exchange server?', default=False):
+    #     xchange_ip = click.prompt('Please enter exchange server ip', type=str) #customer type?
+    #     xchange_ep = click.prompt('Please enter exchange server endpoint', type=destr) #customer type?
+
+    ap = click.prompt('Please enter a AP name', type=str)
+    ap_pwd = click.prompt('Please enter AP password', type=str)
+    d_name = click.prompt('Please enter device name', type=str)
+
+    # display all info
+    msvr = wio.config.get("mserver", None)
+    click.echo("main server: %s" %msvr)
+    # click.echo("xchange server ip: msvr_ip")
+    # click.echo("xchange server endpoint:")
+    click.echo("ap name: %s" %ap)
+    click.echo("ap password: %s" %ap_pwd)
+    click.echo("device name: %s" %d_name)
+
+    if not click.confirm('Do you confirm setup info?', default=True):
+        pass #again?
+
+    # send serial command
+    msvr_ip = wio.config.get("mserver_ip", None)
+    xsvr_ip = msvr_ip
+    with serial.Serial(port, 115200, timeout=10) as ser:
+        cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, msvr_ip, xsvr_ip)
+        click.echo(cmd)
+        ser.write(cmd.encode('utf-8'))
+        # while True:
+        if "ok" in ser.readline():
+            click.echo("wifi info write success.")
+
+    token = wio.config.get("token", None)
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix or not token:
+        click.echo("Please login [wio login]")
+        return
+
+    # click.echo(json_response)
+    state_online = False
+    for i in range(30):
+        params = {"access_token":token}
+        r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params)
+        json_response = r.json()
+        for n in json_response["nodes"]:
+            if n["node_sn"] == node_sn and n["online"]:
+                click.echo("device connect server success.")
+                state_online = True
+                break
+        if state_online:
+            break
+        time.sleep(1)
+
+    if not state_online:
+        click.echo("device connect server failure.")
+        return
+
+    params = {"name":d_name,"node_sn":node_sn,"access_token":token}
+    r = requests.post("%s%s" %(api_prefix, nodes_rename_endpoint), params=params)
+    json_response = r.json()
+    click.echo(json_response)
+    if json_response.get("result", None) == "ok":
+        click.echo("device set name success.")
+    else:
+        click.echo("device set name failure.")
+        return
+
+    click.echo("wio setup complete.")
+
+@cli.command()
+def test():
+    click.echo("teng", nl=False)
+    click.echo(" awong", nl=False)
+    click.echo(" sss", nl=True)
