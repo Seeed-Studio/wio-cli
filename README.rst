@@ -22,13 +22,6 @@ commands is shown with ``--help``::
 
    wio --help
 
-<!--There is also a ``help`` command that can be used to get help text for a specific
-command::
-
-    openstack help
-    openstack help server create-->
-    
-    
 Command
 ==========
 login in:
