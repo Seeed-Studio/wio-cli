@@ -24,22 +24,22 @@ commands is shown with ``--help``::
 
 Command
 ==========
-login in:
+login in::
 
-	wio login
+    wio login
 	
-get login state:
+get login state::
 
-	wio state
+    wio state
+
+list wio & apis::
+
+   wio list
+
+configure with usb connect::
 	
-list wio & apis:
+    wio setup
 
-	wio list
-
-configure with usb connect:
+config main server::
 	
-	wio setup
-
-config main server:
-	
-	wio config mserver
+    wio config mserver
