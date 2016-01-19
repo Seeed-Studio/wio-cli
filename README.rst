@@ -2,14 +2,10 @@
 Wio Link Command Line Interface
 ===============================
 
-.. image:: https://img.shields.io/pypi/v/python-openstackclient.svg
-    :target: https://pypi.python.org/pypi/python-openstackclient/
+.. image:: https://img.shields.io/badge/pypi-0.0.9-blue.svg
+    :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
-
-.. image:: https://img.shields.io/pypi/dm/python-openstackclient.svg
-    :target: https://pypi.python.org/pypi/python-openstackclient/
-    :alt: Downloads
-
+    
 Getting Started
 ===============
 
