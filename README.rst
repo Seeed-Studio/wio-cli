@@ -1,5 +1,5 @@
 ===============================
-WioLink Command Line Interface
+Wio Link Command Line Interface
 ===============================
 
 .. image:: https://img.shields.io/pypi/v/python-openstackclient.svg
@@ -10,7 +10,7 @@ WioLink Command Line Interface
     :target: https://pypi.python.org/pypi/python-openstackclient/
     :alt: Downloads
 
-OpenStackClient (aka OSC) is a command-line client for OpenStack that brings
+<!--OpenStackClient (aka OSC) is a command-line client for OpenStack that brings
 the command set for Compute, Identity, Image, Object Store and Block Storage
 APIs together in a single shell with a uniform command structure.
 
@@ -35,27 +35,50 @@ language to describe operations in OpenStack.
 .. _Bugs: https://bugs.launchpad.net/python-openstackclient
 .. _Source: https://git.openstack.org/cgit/openstack/python-openstackclient
 .. _Developer: http://docs.openstack.org/infra/manual/python.html
-.. _Contributing: http://docs.openstack.org/infra/manual/developers.html
+.. _Contributing: http://docs.openstack.org/infra/manual/developers.html-->
 
 Getting Started
 ===============
 
-OpenStack Client can be installed from PyPI using pip::
+Wio Link Client can be installed from PyPI using pip::
 
-    pip install python-openstackclient
+    pip install wio-cli
 
 There are a few variants on getting help.  A list of global options and supported
 commands is shown with ``--help``::
 
-   openstack --help
+   wio --help
 
-There is also a ``help`` command that can be used to get help text for a specific
+<!--There is also a ``help`` command that can be used to get help text for a specific
 command::
 
     openstack help
-    openstack help server create
+    openstack help server create-->
+    
+    
+Command
+==========
+login in:
 
-Configuration
+	wio login
+	
+get login state:
+
+	wio state
+	
+list wio & apis:
+
+	wio list
+
+configure with usb connect:
+	
+	wio setup
+
+config main server:
+	
+	wio config mserver
+
+<!--Configuration
 =============
 
 The CLI is configured via environment variables and command-line
@@ -88,4 +111,4 @@ from the Service Catalog::
 The corresponding command-line options look very similar::
 
     --os-token <token>
-    --os-url <url-to-openstack-service>
+    --os-url <url-to-openstack-service>-->
