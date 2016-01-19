@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='wio-cli',
-    version='0.0.8',
+    version='0.0.9',
     description='CLI for Wio Link',
     url='https://github.com/awong1900/wio_cli',
     author='Ten Wong',
