@@ -10,33 +10,6 @@ Wio Link Command Line Interface
     :target: https://pypi.python.org/pypi/python-openstackclient/
     :alt: Downloads
 
-<!--OpenStackClient (aka OSC) is a command-line client for OpenStack that brings
-the command set for Compute, Identity, Image, Object Store and Block Storage
-APIs together in a single shell with a uniform command structure.
-
-The primary goal is to provide a unified shell command structure and a common
-language to describe operations in OpenStack.
-
-* `PyPi`_ - package installation
-* `Online Documentation`_
-* `Launchpad project`_ - release management
-* `Blueprints`_ - feature specifications
-* `Bugs`_ - issue tracking
-* `Source`_
-* `Developer` - getting started as a developer
-* `Contributing` - contributing code
-* IRC: #openstack-sdks on Freenode (irc.freenode.net)
-* License: Apache 2.0
-
-.. _PyPi: https://pypi.python.org/pypi/python-openstackclient
-.. _Online Documentation: http://docs.openstack.org/developer/python-openstackclient/
-.. _Launchpad project: https://launchpad.net/python-openstackclient
-.. _Blueprints: https://blueprints.launchpad.net/python-openstackclient
-.. _Bugs: https://bugs.launchpad.net/python-openstackclient
-.. _Source: https://git.openstack.org/cgit/openstack/python-openstackclient
-.. _Developer: http://docs.openstack.org/infra/manual/python.html
-.. _Contributing: http://docs.openstack.org/infra/manual/developers.html-->
-
 Getting Started
 ===============
 
