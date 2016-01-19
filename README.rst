@@ -30,8 +30,15 @@ get login state::
 
 list wio & apis::
 
-   wio list
+    wio list
 
+call api::
+
+    wio call <token> <method> <endpoint>
+    
+    example: wio call c74a110c2e397823f0ce53ef669d5b7f  GET /v1/node/GroveMoistureA0/moisture
+    {u'moisture': 0}
+    
 configure with usb connect::
 	
     wio setup
@@ -39,3 +46,4 @@ configure with usb connect::
 config main server::
 	
     wio config mserver
+
