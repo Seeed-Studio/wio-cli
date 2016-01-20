@@ -2,41 +2,10 @@
 Wio Link Command Line Interface
 ===============================
 
-.. image:: https://img.shields.io/pypi/v/python-openstackclient.svg
-    :target: https://pypi.python.org/pypi/python-openstackclient/
+.. image:: https://img.shields.io/badge/pypi-0.0.9-orange.svg
+    :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
-
-.. image:: https://img.shields.io/pypi/dm/python-openstackclient.svg
-    :target: https://pypi.python.org/pypi/python-openstackclient/
-    :alt: Downloads
-
-<!--OpenStackClient (aka OSC) is a command-line client for OpenStack that brings
-the command set for Compute, Identity, Image, Object Store and Block Storage
-APIs together in a single shell with a uniform command structure.
-
-The primary goal is to provide a unified shell command structure and a common
-language to describe operations in OpenStack.
-
-* `PyPi`_ - package installation
-* `Online Documentation`_
-* `Launchpad project`_ - release management
-* `Blueprints`_ - feature specifications
-* `Bugs`_ - issue tracking
-* `Source`_
-* `Developer` - getting started as a developer
-* `Contributing` - contributing code
-* IRC: #openstack-sdks on Freenode (irc.freenode.net)
-* License: Apache 2.0
-
-.. _PyPi: https://pypi.python.org/pypi/python-openstackclient
-.. _Online Documentation: http://docs.openstack.org/developer/python-openstackclient/
-.. _Launchpad project: https://launchpad.net/python-openstackclient
-.. _Blueprints: https://blueprints.launchpad.net/python-openstackclient
-.. _Bugs: https://bugs.launchpad.net/python-openstackclient
-.. _Source: https://git.openstack.org/cgit/openstack/python-openstackclient
-.. _Developer: http://docs.openstack.org/infra/manual/python.html
-.. _Contributing: http://docs.openstack.org/infra/manual/developers.html-->
-
+    
 Getting Started
 ===============
 
@@ -49,66 +18,51 @@ commands is shown with ``--help``::
 
    wio --help
 
-<!--There is also a ``help`` command that can be used to get help text for a specific
-command::
-
-    openstack help
-    openstack help server create-->
-    
-    
 Command
 ==========
-login in:
+login in::
 
-	wio login
+    wio login
 	
-get login state:
+get login state::
 
-	wio state
+    wio state
+    
+    example:
+    $ wio state
+    email: xxx@xxx.xx
+    token: 4LxiwvwFAw3C7LiiUQiZh6qOj44tV6KGsXyjp3jVzxx
+    mserver: https://iot.seeed.cc
+    mserver_ip: 45.79.4.239
+
+list wio & apis::
+
+    wio list
+    
+    example:
+    $ wio list
+    <wio-cli> sn[7bb5f63b86de785a7fb8243bc7160dca],token[26cda37ff879cd9df93107ed1983aa89] is offline
+    <sw> sn[95c5c5d2bb1e82f6ccdef080c6a1275d],token[ddb4d188352bac33d294f04cc9f02355] is offline
+    <windows-test> sn[88acb36fada20050c3ce086188a53577],token[c74a110c2e397823f0ce53ef669d5b7f] is online
+      GET /v1/node/GroveMoistureA0/moisture -> uint16_t moisture
+      GET /v1/node/GroveEncoderUART0/position -> int32_t position
+      POST /v1/node/GroveEncoderUART0/reset_position/{int32_t position}
+      POST /v1/node/GroveEncoderUART0/enable_acceleration/{uint8_t enable}
+      Event GroveEncoderUART0 encoder_position
+
+call api::
+
+    wio call <token> <method> <endpoint>
+    
+    example: 
+    $ wio call c74a110c2e397823f0ce53ef669d5b7f  GET /v1/node/GroveMoistureA0/moisture
+    {u'moisture': 0}
+    
+configure with usb connect::
 	
-list wio & apis:
+    wio setup
 
-	wio list
-
-configure with usb connect:
+config main server::
 	
-	wio setup
+    wio config mserver
 
-config main server:
-	
-	wio config mserver
-
-<!--Configuration
-=============
-
-The CLI is configured via environment variables and command-line
-options as listed in  http://docs.openstack.org/developer/python-openstackclient/authentication.html.
-
-Authentication using username/password is most commonly used::
-
-   export OS_AUTH_URL=<url-to-openstack-identity>
-   export OS_PROJECT_NAME=<project-name>
-   export OS_USERNAME=<username>
-   export OS_PASSWORD=<password>  # (optional)
-
-The corresponding command-line options look very similar::
-
-   --os-auth-url <url>
-   --os-project-name <project-name>
-   --os-username <username>
-   [--os-password <password>]
-
-If a password is not provided above (in plaintext), you will be interactively
-prompted to provide one securely.
-
-Authentication may also be performed using an already-acquired token
-and a URL pointing directly to the service API that presumably was acquired
-from the Service Catalog::
-
-    export OS_TOKEN=<token>
-    export OS_URL=<url-to-openstack-service>
-
-The corresponding command-line options look very similar::
-
-    --os-token <token>
-    --os-url <url-to-openstack-service>-->
