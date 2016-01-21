@@ -10,7 +10,7 @@ import termui
 
 import click
 import requests
-
+import signal
 # from serial_list
 # api_prefix = "http://192.168.21.48:8080"
 # api_prefix = "https://iot.seeed.cc"
@@ -20,6 +20,7 @@ well_known_endpoint = "/v1/node/.well-known"
 nodes_create_endpoint = "/v1/nodes/create"
 nodes_rename_endpoint = "/v1/nodes/rename"
 nodes_delete_endpoint = "/v1/nodes/delete"
+node_resources_endpoint = "/v1/node/resources"
 
 class Wio(object):
 
@@ -43,6 +44,9 @@ class Wio(object):
 
 pass_wio = click.make_pass_decorator(Wio, ensure=True)
 
+def sigint_handler(signum, frame):
+    click.echo()
+    exit(0)
 
 @click.group()
 # @click.option('--wio-home', envvar='REPO_HOME', default='.wio',
@@ -51,7 +55,7 @@ pass_wio = click.make_pass_decorator(Wio, ensure=True)
 #               metavar='KEY VALUE', help='Overrides a config key/value pair.')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enables verbose mode.')
-@click.version_option('0.0.9')
+@click.version_option('0.0.13')
 @click.pass_context
 def cli(ctx, verbose):
     """Wio is a command line tool that showcases how to build complex
@@ -75,6 +79,10 @@ def cli(ctx, verbose):
     db_file_path = '%s/config.json' % cur_dir
     config = json.load(open(db_file_path))
     ctx.obj.config = config
+
+    signal.signal(signal.SIGINT, sigint_handler)
+
+
 
 def login_server(wio):
     while True:
@@ -125,26 +133,37 @@ def login(wio):
         click.style('Please enter your password', bold=True), hide_input=True, type=str)
 
     thread = termui.waiting_echo("Sending login details...")
+    thread.daemon = True
     thread.start()
     params = {"email":email, "password":password}
     api_prefix = wio.config.get("mserver", None)
-    r = requests.post("%s%s" %(api_prefix, login_endpoint), params=params)
-    token = r.json().get("token", None)
+    try:
+        r = requests.post("%s%s" %(api_prefix, login_endpoint), params=params, timeout=10)
+        r.raise_for_status()
+        json_response = r.json()
+    except requests.exceptions.HTTPError as e:
+        thread.stop('')
+        thread.join()
+        if r.status_code == 400:
+            error = r.json().get("error", None)
+            click.secho(">> %s" %error, fg='red')
+        else:
+            click.secho(">> %s" %e, fg='red')
+        return
+    except Exception as e:
+        thread.stop('')
+        thread.join()
+        click.secho(">> %s" %e, fg='red')
+        return
+
+    token = json_response.get("token", None)
     wio.set_config('email', email)
     wio.set_config('token', token)
-    if token:
-        thread.stop('')
-        thread.join()
-        click.secho("\r> ", fg='green', nl=False)
-        click.echo("Successfully completed login!")
-    else:
-        thread.stop('')
-        thread.join()
-        error = r.json().get("error", None)
-        if not error:
-            error = r.json().get("msg", None)
-        click.secho("\r>> ", fg='red', nl=False)
-        click.echo('%s' %error)
+
+    thread.stop('')
+    thread.join()
+    click.secho("\r> ", fg='green', nl=False)
+    click.echo("Successfully completed login!")
 
 @cli.command()
 @pass_wio
@@ -158,54 +177,87 @@ def list(wio):
         return
 
     thread = termui.waiting_echo("Retrieving devices...")
+    thread.daemon = True
     thread.start()
     params = {"access_token":user_token}
-    r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params, timeout=10)
-    json_response = None
-    json_response = r.json()
-    if not json_response:
-        pass
-        click.echo("error")
+    try:
+        r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params, timeout=10)
+        r.raise_for_status()
+        json_response = r.json()
+    except requests.exceptions.HTTPError as e:
+        thread.stop('')
+        thread.join()
+        if r.status_code == 400:
+            error = json_response.get("error", None)
+            click.secho(">> %s" %error, fg='red')
+        else:
+            click.secho(">> %s" %e, fg='red')
         return
+    except Exception as e:
+        thread.stop('')
+        thread.join()
+        click.secho(">> %s" %e, fg='red')
+        return
+
     nodes = json_response.get("nodes", None)
     thread.message("Retrieving device APIs...")
-    nodes_api = []
+    node_list = []
     for n in nodes:
         if n['name'] == 'node000':
             params = {"access_token":user_token, "node_sn":n['node_sn']}
-            r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10)
-            json_response = None
-            json_response = r.json()
-            if not json_response:
-                click.echo("error")
+            try:
+                r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10)
+                r.raise_for_status()
+                json_response = r.json()
+            except requests.exceptions.HTTPError as e:
+                thread.stop('')
+                thread.join()
+                if r.status_code == 400:
+                    error = json_response.get("error", None)
+                    click.secho(">> %s" %error, fg='red')
+                else:
+                    click.secho(">> %s" %e, fg='red')
+                return
+            except Exception as e:
+                thread.stop('')
+                thread.join()
+                click.secho(">> %s" %e, fg='red')
+                return
             continue
         if n["online"]:
             params = {"access_token":n["node_key"]}
-            r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params, timeout=10)
-            json_response = None
-            json_response = r.json()
-            if not json_response:
-                click.echo("error")
-            apis = json_response["well_known"]
-            n['apis'] = apis
+            try:
+                r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params, timeout=10)
+                r.raise_for_status()
+                json_response = r.json()
+            except requests.exceptions.HTTPError as e:
+                thread.stop('')
+                thread.join()
+                if r.status_code == 400:
+                    error = json_response.get("error", None)
+                    click.secho(">> %s" %error, fg='red')
+                else:
+                    click.secho(">> %s" %e, fg='red')
+                return
+            except Exception as e:
+                thread.stop('')
+                thread.join()
+                click.secho(">> %s" %e, fg='red')
+                return
+            well_known = json_response["well_known"] #todo error risk
+            n['well_known'] = well_known
+            n['onoff'] = 'online'
         else:
-            n['apis'] = []
-        nodes_api.append(n)
+            n['well_known'] = []
+            n['onoff'] = 'offline'
+
+        n['resources'] = "%s%s?access_token=%s" %(api_prefix, node_resources_endpoint, n['node_key'])
+        node_list.append(n)
 
     thread.stop('')
     thread.join()
 
-    for n in nodes_api:
-        if n['online']:
-            onoff = 'online'
-            fg = "green"
-        else:
-            onoff = 'offline'
-            fg = "cyan"
-        click.secho("  <%s>" %n['name'], fg=fg, nl=False)
-        click.echo(" sn[%s],token[%s] is %s" %(n["node_sn"], n["node_key"], onoff))
-        for api in n['apis']:
-            click.echo("    " + api)
+    termui.tree(node_list)
 
 @cli.command()
 @click.argument('token')
@@ -223,18 +275,30 @@ def call(wio, method, endpoint, token, xchange):
         click.echo("Please login [wio login]")
         return
     api = "%s%s?access_token=%s" %(api_prefix, endpoint, token)
-    # print api
-    if method == "GET":
-        r = requests.get(api)
-    elif method == "POST":
-        r = requests.post(api)
-    else:
-        click.echo("API method [%s] is wrong, should be GET or POST." %method)
-        return
+
     try:
-        click.echo(r.json())
+        if method == "GET":
+            r = requests.get(api, timeout=10)
+        elif method == "POST":
+            r = requests.post(api, timeout=10)
+        else:
+            click.secho(">> METHOD [%s] is wrong, should be GET or POST." %method, fg='red')
+            return
+        r.raise_for_status()
+        json_response = r.json()
+    except requests.exceptions.HTTPError as e:
+        if r.status_code == 400:
+            # error = json_response.get("error", None)
+            # click.secho(">> %s" %error, fg='red')
+            click.echo(r.json)
+        else:
+            click.secho(">> %s" %e, fg='red')
+        return
     except Exception as e:
-        click.echo("Error[%s], API[%s]" %(e, api))
+        click.secho(">> %s" %e, fg='red')
+        return
+
+    click.echo(r.json())
 
 @cli.command()
 @pass_wio
@@ -244,21 +308,24 @@ def state(wio):
     mserver = wio.config.get("mserver",None)
     mserver_ip = wio.config.get("mserver_ip",None)
     token = wio.config.get("token",None)
-    click.echo("email: %s" %email)
-    click.echo("token: %s" %token)
-    click.echo("mserver: %s" %mserver)
-    click.echo("mserver_ip: %s" %mserver_ip)
+    click.secho('> ', fg='green', nl=False)
+    click.echo("email: " + click.style(email, fg='green', bold=True))
+    click.secho('> ', fg='green', nl=False)
+    click.echo("token: " + click.style(token, fg='green', bold=True))
+    click.secho('> ', fg='green', nl=False)
+    click.echo("main server: " + click.style(mserver, fg='green', bold=True))
+    click.secho('> ', fg='green', nl=False)
+    click.echo("main server ip: " + click.style(mserver_ip, fg='green', bold=True))
 
 @cli.command()
 @click.argument('subcommand')
-# @click.argument('sdf')
 # @click.option('--mserver', default= None, help='Set main server ip, such as 192.168.21.48')
 @pass_wio
 def config(wio, subcommand):
     '''
     subcommand: mserver
     '''
-    if subcommand == "mserver":
+    if subcommand == "main-server":
         while True:
             click.echo("1.) International[https://iot.seeed.cc]")
             click.echo("2.) China[https://cn.iot.seeed.cc]")
@@ -313,9 +380,32 @@ def setup(wio):
     if not api_prefix or not token:
         click.echo("Please login [wio login]")
         return
-    params = {"name":"node000","access_token":token}
-    r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params)
-    json_response = r.json()
+
+    thread = termui.waiting_echo("Getting message from main server...")
+    thread.daemon = True
+    thread.start()
+    try:
+        params = {"name":"node000","access_token":token}
+        r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params, timeout=10)
+        r.raise_for_status()
+        json_response = r.json()
+    except requests.exceptions.HTTPError as e:
+        thread.stop('')
+        thread.join()
+        if r.status_code == 400:
+            error = json_response.get("error", None)
+            click.secho(">> %s" %error, fg='red')
+        else:
+            click.secho(">> %s" %e, fg='red')
+        return
+    except Exception as e:
+        thread.stop('')
+        thread.join()
+        click.secho(">> %s" %e, fg='red')
+        return
+
+    thread.stop('')
+    thread.join()
 
     node_key = json_response["node_key"]
     node_sn = json_response["node_sn"]
@@ -335,23 +425,115 @@ def setup(wio):
                 click.echo("%s.) %s" %(x, ports[x]))
             click.secho('? ', fg='green', nl=False)
             value = click.prompt(click.style('Please choice a device', bold=True), type=int)
-            if value >= 0 and value <= len(ports):
+            if value >= 0 and value < len(ports):
                 port = ports[value]
                 break
             else:
                 click.echo(click.style('>> ', fg='red') + "invalid input.")
 
     if not port:
-        click.echo("No connect device!")
+        click.secho('>> ', fg='red', nl=False)
+        click.echo("No found device!, Plese connect your Wiolink with USB.")
         return
     click.echo(click.style('> ', fg='green') +
         "I have detected a " +
         click.style("Wiolink ", fg='green') +
         "connected via USB.")
 
+    # check is configure mode?
+    thread = termui.waiting_echo("Getting device information...")
+    thread.daemon = True
+    thread.start()
+
+    flag = False
+    with serial.Serial(port, 115200, timeout=5) as ser:
+        cmd = 'Blank?\r\n'
+        ser.write(cmd.encode('utf-8'))
+        if 'Node' in ser.readline():
+            flag = True
+
+    thread.stop('')
+    thread.join()
+
+    if flag:
+        click.secho('> ', fg='green', nl=False)
+        click.secho("Found Wiolink.", fg='green', bold=True)
+        click.echo()
+    else:
+        click.secho('> ', fg='green', nl=False)
+        click.secho("No nearby Wiolink detected.", fg='white', bold=True)
+        if click.confirm(click.style('? ', fg='green') +
+                click.style("Would you like to wait and monitor for Wiolink entering configure mode", bold=True),
+                default=True):
+
+            thread = termui.waiting_echo("Waiting for a wild Wiolink to appear... (press ctrl + C to exit)")
+            thread.daemon = True
+            thread.start()
+
+            flag = False
+            while 1:
+                with serial.Serial(port, 115200, timeout=5) as ser:
+                    cmd = 'Blank?\r\n'
+                    ser.write(cmd.encode('utf-8'))
+                    if 'Node' in ser.readline():
+                        flag = True
+                        break
+
+            thread.stop('')
+            thread.join()
+            click.secho('> ', fg='green', nl=False)
+            click.secho("Found Wiolink.", fg='green', bold=True)
+            click.echo()
+        else:
+            click.secho('> ', fg='green', nl=False)
+            click.secho("\nQuit wio setup!", bg='white', bold=True)
+
     while 1:
-        ap = click.prompt(click.style('> ', fg='green') +
-            click.style('Please enter the SSID of your Wi-Fi network', bold=True), type=str)
+        if not click.confirm(click.style('? ', fg='green') +
+                    click.style("Would you like to manually enter your Wi-Fi network configuration?", bold=True),
+                    default=False):
+            thread = termui.waiting_echo("Asking the Wiolink to scan for nearby Wi-Fi networks...")
+            thread.daemon = True
+            thread.start()
+
+            flag = False
+            with serial.Serial(port, 115200, timeout=3) as ser:
+                cmd = 'SCAN\r\n'
+                ser.write(cmd.encode('utf-8'))
+                ssid_list = []
+                while True:
+                    ssid = ser.readline()
+                    if ssid == '\r\n':
+                        flag = True
+                        break
+                    ssid = ssid.strip('\r\n')
+                    ssid_list.append(ssid)
+
+            if flag:
+                thread.stop('')
+                thread.join()
+            else:
+                thread.stop("\rsearch failure...\n")
+                return
+
+            while 1:
+                for x in range(len(ssid_list)):
+                    click.echo("%s.) %s" %(x, ssid_list[x]))
+                click.secho('? ', fg='green', nl=False)
+                value = click.prompt(
+                            click.style('Please select the network to which your Wiolink should connect', bold=True),
+                            type=int)
+                if value >= 0 and value < len(ssid_list):
+                    ssid = ssid_list[value]
+                    break
+                else:
+                    click.echo(click.style('>> ', fg='red') + "invalid input, range 0 to %s" %(len(ssid_list)-1))
+
+            ap = ssid
+        else:
+            ap = click.prompt(click.style('> ', fg='green') +
+                click.style('Please enter the SSID of your Wi-Fi network', bold=True), type=str)
+
         ap_pwd = click.prompt(click.style('> ', fg='green') +
             click.style('Please enter your Wi-Fi network password (leave blank for none)', bold=True),
             default='', show_default=False)
@@ -363,22 +545,24 @@ def setup(wio):
         click.echo()
         # click.echo(click.style(' - ', fg='green') + "main server: %s" %msvr)
         click.echo(click.style('> ', fg='green') + "Wi-Fi network: " +
-            click.style(ap, fg='green'))
+            click.style(ap, fg='green', bold=True))
         ap_pwd_p = ap_pwd
         if ap_pwd_p == '':
             ap_pwd_p = 'None'
         click.echo(click.style('> ', fg='green') + "Password: " +
-            click.style(ap_pwd_p, fg='green'))
+            click.style(ap_pwd_p, fg='green', bold=True))
         click.echo(click.style('> ', fg='green') + "Device name: " +
-            click.style(d_name, fg='green'))
+            click.style(d_name, fg='green', bold=True))
         click.echo()
 
         if click.confirm(click.style('? ', fg='green') +
             "Would you like to continue with the information shown above?", default=True):
             break
+
     click.echo()
     #waiting ui
     thread = termui.waiting_echo("Sending Wi-Fi information to device...")
+    thread.daemon = True
     thread.start()
 
     # send serial command
@@ -407,34 +591,66 @@ def setup(wio):
     # click.echo(json_response)
     state_online = False
     for i in range(30):
-        params = {"access_token":token}
-        r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params)
-        json_response = r.json()
+        try:
+            params = {"access_token":token}
+            r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params)
+            r.raise_for_status()
+            json_response = r.json()
+        except requests.exceptions.HTTPError as e:
+            thread.stop('')
+            thread.join()
+            if r.status_code == 400:
+                error = json_response.get("error", None)
+                click.secho(">> %s" %error, fg='red')
+            else:
+                click.secho(">> %s" %e, fg='red')
+            return
+        except Exception as e:
+            thread.stop('')
+            thread.join()
+            click.secho(">> %s" %e, fg='red')
+            return
+
         for n in json_response["nodes"]:
             if n["node_sn"] == node_sn and n["online"]:
-                click.echo(click.style('\r> ', fg='green') + "The Wiolink connect to main server success.         ")
+                click.echo(click.style('\r> ', fg='green') + "The Wiolink connect to main server success.              ")
                 thread.message("Setting Wiolink name...")
                 state_online = True
                 break
         if state_online:
             break
+
+        thread.message("The Wiolink now attempt to connect to main server... [%s]" %(30-i))
         time.sleep(1)
 
     if not state_online:
-        click.echo(click.style('\r>> ', fg='red') + "The Wiolink connect to main server failure.")
         thread.stop('')
+        thread.join()
+        click.echo(click.style('\r>> ', fg='red') + "The Wiolink connect to main server failure.")
+        click.secho("\n> Please check info you enter, Try again.", fg='white', bold=True)
+
         return
 
-    params = {"name":d_name,"node_sn":node_sn,"access_token":token}
-    r = requests.post("%s%s" %(api_prefix, nodes_rename_endpoint), params=params)
-    json_response = r.json()
-    # click.echo(json_response)
-    if json_response.get("result", None) == "ok":
-        click.echo(click.style('\r> ', fg='green') + "Set Wiolink name success.")
-    else:
-        click.echo(click.style('\r>> ', fg='red') + "Set Wiolink name failure.")
+    try:
+        params = {"name":d_name,"node_sn":node_sn,"access_token":token}
+        r = requests.post("%s%s" %(api_prefix, nodes_rename_endpoint), params=params)
+        r.raise_for_status()
+        json_response = r.json()
+    except requests.exceptions.HTTPError as e:
         thread.stop('')
+        thread.join()
+        if r.status_code == 400:
+            error = json_response.get("error", None)
+            click.secho(">> %s" %error, fg='red')
+        else:
+            click.secho(">> %s" %e, fg='red')
         return
+    except Exception as e:
+        thread.stop('')
+        thread.join()
+        click.secho(">> %s" %e, fg='red')
+        return
+    click.echo(click.style('\r> ', fg='green') + "Set Wiolink name success.")
 
     thread.stop('')
     thread.join()
