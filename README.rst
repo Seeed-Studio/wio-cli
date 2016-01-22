@@ -2,7 +2,7 @@
 Wio Link Command Line Interface
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.0.9-orange.svg
+.. image:: https://img.shields.io/badge/pypi-0.0.14-orange.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
     
@@ -13,18 +13,21 @@ Wio Link Client can be installed from PyPI using pip::
 
     pip install wio-cli
 
-There are a few variants on getting help.  A list of global options and supported
-commands is shown with ``--help``::
+A list of global options and supported, commands is shown with ``--help``::
 
-   wio --help
+    wio --help
+
+More info, that can be used to get help text for a specific command::
+
+    wio <command> --help
 
 Command
 ==========
-login in::
+Login with your Wiolink account::
 
     wio login
 	
-get login state::
+Login state::
 
     wio state
     
@@ -35,22 +38,22 @@ get login state::
     mserver: https://iot.seeed.cc
     mserver_ip: 45.79.4.239
 
-list wio & apis::
+ Displays a list of your devices and their APIs::
 
     wio list
     
     example:
     $ wio list
-    <wio-cli> sn[7bb5f63b86de785a7fb8243bc7160dca],token[26cda37ff879cd9df93107ed1983aa89] is offline
-    <sw> sn[95c5c5d2bb1e82f6ccdef080c6a1275d],token[ddb4d188352bac33d294f04cc9f02355] is offline
-    <windows-test> sn[88acb36fada20050c3ce086188a53577],token[c74a110c2e397823f0ce53ef669d5b7f] is online
-      GET /v1/node/GroveMoistureA0/moisture -> uint16_t moisture
-      GET /v1/node/GroveEncoderUART0/position -> int32_t position
-      POST /v1/node/GroveEncoderUART0/reset_position/{int32_t position}
-      POST /v1/node/GroveEncoderUART0/enable_acceleration/{uint8_t enable}
-      Event GroveEncoderUART0 encoder_position
+	|-- home (online)                                                                
+	    |-- sn: e3d0dccd4587f40a5d6ffda236755aa4
+	    |-- token: ce140e79f24717ed7d6d44bfb5d848b2
+	    |-- resource url: http://192.168.21.115:8080/v1/node/resources?access_token=ce140e79f24717ed7d6d44bfb5d848b2
+	    |-- well_known: 
+	        |-- GET /v1/node/GroveTempHumProD0/humidity -> float humidity
+	        |-- GET /v1/node/GroveTempHumProD0/temperature -> float celsius_degree
+	        |-- GET /v1/node/GroveTempHumProD0/temperature_f -> float fahrenheit_degree
 
-call api::
+Request api, return json::
 
     wio call <token> <method> <endpoint>
     
@@ -58,11 +61,11 @@ call api::
     $ wio call c74a110c2e397823f0ce53ef669d5b7f  GET /v1/node/GroveMoistureA0/moisture
     {u'moisture': 0}
     
-configure with usb connect::
+Add a new device with USB connect::
 	
     wio setup
 
-config main server::
+config your main server::
 	
     wio config mserver
 
