@@ -38,7 +38,7 @@ Login state::
     mserver: https://iot.seeed.cc
     mserver_ip: 45.79.4.239
 
- Displays a list of your devices and their APIs::
+Displays a list of your devices and their APIs::
 
     wio list
     
