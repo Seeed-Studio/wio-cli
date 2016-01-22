@@ -11,9 +11,9 @@ import termui
 import click
 import requests
 import signal
-# from serial_list
-# api_prefix = "http://192.168.21.48:8080"
-# api_prefix = "https://iot.seeed.cc"
+
+version = '0.0.14'
+
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
 well_known_endpoint = "/v1/node/.well-known"
@@ -27,7 +27,7 @@ class Wio(object):
     def __init__(self):
         # self.home = home
         self.config = {}
-        self.verbose = False
+        # self.verbose = False
 
     def set_config(self, key, value):
         self.config[key] = value
@@ -35,11 +35,8 @@ class Wio(object):
         cur_dir = os.path.abspath(os.path.expanduser("~/.wio"))
         db_file_path = '%s/config.json' % cur_dir
         open("%s/config.json"%cur_dir,"w").write(json.dumps(self.config))
-        if self.verbose:
-            click.echo('config[%s] = %s' % (key, value), file=sys.stderr)
-
-    def __repr__(self):
-        return '<Wio %r>' % self.home
+        # if self.verbose:
+        #     click.echo('config[%s] = %s' % (key, value), file=sys.stderr)
 
 
 pass_wio = click.make_pass_decorator(Wio, ensure=True)
@@ -53,22 +50,22 @@ def sigint_handler(signum, frame):
 #               metavar='PATH', help='Changes the wiository folder location.')
 # @click.option('--config', nargs=2, multiple=True,
 #               metavar='KEY VALUE', help='Overrides a config key/value pair.')
-@click.option('--verbose', '-v', is_flag=True,
-              help='Enables verbose mode.')
-@click.version_option('0.0.13')
+# @click.option('--verbose', '-v', is_flag=True,
+#               help='Enables verbose mode.')
+@click.version_option(version)
 @click.pass_context
-def cli(ctx, verbose):
-    """Wio is a command line tool that showcases how to build complex
-    command line interfaces with Click.
+def cli(ctx):
+    """\b
+    Welcome to the Wiolink Command line utility!
+    https://github.com/Seeed-Studio/wio-cli
 
-    This tool is supposed to look like a distributed version control
-    system to show how something like this can be structured.
+    For more information Run: wio <command_name> --help
     """
     # Create a wio object and remember it as as the context object.  From
     # this point onwards other commands can refer to it by using the
     # @pass_wio decorator.
     ctx.obj = Wio()
-    ctx.obj.verbose = verbose
+    # ctx.obj.verbose = verbose
     # config.json
     # cur_dir = os.path.split(os.path.realpath(__file__))[0]
     cur_dir = os.path.abspath(os.path.expanduser("~/.wio"))
@@ -81,8 +78,6 @@ def cli(ctx, verbose):
     ctx.obj.config = config
 
     signal.signal(signal.SIGINT, sigint_handler)
-
-
 
 def login_server(wio):
     while True:
@@ -113,12 +108,19 @@ def login_server(wio):
     wio.set_config("mserver_ip", mserver_ip)
 
 @cli.command()
-# @click.option('--mserver', callback=login_server, expose_value=False, help='The developer\'s email address', is_eager=True)
-# @click.option('--email', prompt='Please enter your email address', help='The developer\'s email address')
-# @click.option('--password', prompt='Please enter your password', hide_input=True, help='The login password.')
 @pass_wio
 def login(wio):
-    '''login with your wio link account'''
+    '''
+    Login with your Wiolink account.
+
+    \b
+    DOES:
+        Login and save an access token for interacting with your account on the Wiolink.
+
+    \b
+    USE:
+        wio login
+    '''
     mserver = wio.config.get("mserver", None)
     if mserver:
         click.echo(click.style('> ', fg='green') + "Current main server is: " +
@@ -168,7 +170,17 @@ def login(wio):
 @cli.command()
 @pass_wio
 def list(wio):
-    '''List WioLinks and API'''
+    '''
+    Displays a list of your devices.
+
+    \b
+    DOES:
+        Displays a list of your devices, as well as their APIs
+
+    \b
+    USE:
+        wio list
+    '''
     user_token = wio.config.get("token", None)
     api_prefix = wio.config.get("mserver", None)
     if not api_prefix or not user_token:
@@ -263,12 +275,20 @@ def list(wio):
 @click.argument('token')
 @click.argument('method')
 @click.argument('endpoint')
-@click.option('--xchange', help='xchange server url')
+# @click.option('--xchange', help='xchange server url')
 @pass_wio
-def call(wio, method, endpoint, token, xchange):
+def call(wio, method, endpoint, token,):
     '''
-    request api test, return json.
-    example: wio call 98dd464bd268d4dc4cb9b37e4e779313 GET /v1/node/GroveTempHumProD0/temperature
+    Request api, return json.
+
+    \b
+    DOES:
+        Call a api on your devices.
+        wio call device_token request_method device_path
+
+    \b
+    EXAMPLE:
+        wio call 98dd464bd268d4dc4cb9b37e4e779313 GET /v1/node/GroveTempHumProD0/temperature
     '''
     api_prefix = wio.config.get("mserver", None)
     if not api_prefix:
@@ -303,7 +323,17 @@ def call(wio, method, endpoint, token, xchange):
 @cli.command()
 @pass_wio
 def state(wio):
-    '''login state'''
+    '''
+    Login state.
+
+    \b
+    DOES:
+        Display login email, token, main server ip and url.
+
+    \b
+    USE:
+        wio state
+    '''
     email = wio.config.get("email",None)
     mserver = wio.config.get("mserver",None)
     mserver_ip = wio.config.get("mserver_ip",None)
@@ -318,14 +348,23 @@ def state(wio):
     click.echo("main server ip: " + click.style(mserver_ip, fg='green', bold=True))
 
 @cli.command()
-@click.argument('subcommand')
+@click.argument('command', metavar='<main-server>')
 # @click.option('--mserver', default= None, help='Set main server ip, such as 192.168.21.48')
 @pass_wio
-def config(wio, subcommand):
+def config(wio, command):
     '''
-    subcommand: mserver
+    config your main server and so on.
+
+    \b
+    DOES:
+        The config command lets you change your setting,
+        such as main server
+
+    \b
+    EXAMPLE:
+        wio config main-server
     '''
-    if subcommand == "main-server":
+    if command == "main-server":
         while True:
             click.echo("1.) International[https://iot.seeed.cc]")
             click.echo("2.) China[https://cn.iot.seeed.cc]")
@@ -356,6 +395,17 @@ def config(wio, subcommand):
 @cli.command()
 @pass_wio
 def setup(wio):
+    '''
+    Add a new device with USB connect.
+
+    \b
+    DOES:
+        Guides you through setting up a new device, and getting it on your network.
+
+    \b
+    USE:
+        wio setup
+    '''
     click.secho('> ', fg='green', nl=False)
     click.echo("Setup is easy! Let's get started...\n")
     click.secho('! ', fg='green', nl=False)
@@ -658,6 +708,22 @@ def setup(wio):
     click.echo(click.style('> ', fg='green') +
         click.style("Configuration complete!", fg='white', bold=True))
 
+# @cli.command(options_metavar='<options>')
+# @click.option('--count', default=1, help='number of greetings',
+#               metavar='<int>')
+# @click.argument('name', metavar='<name>')
+# def hello(count, name):
+#     """This script prints hello <name> <int> times."""
+#     for x in range(count):
+#         click.echo('Hello %s!' % name)
+#
+# @cli.command()
+# @click.option('--count', default=1, help='number of greetings')
+# @click.argument('name')
+# def test(count, name):
+#     """This script prints hello <name> <int> times."""
+#     for x in range(count):
+#         click.echo('Hello %s!' % name)
 
 # @cli.command()
 # def test():
