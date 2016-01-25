@@ -92,11 +92,11 @@ The "0" might be a different number, or multiple entries might be returned. In t
 
 2. Now we just need to add our user to the group:
     
-    usermod -a -G group-name username
+    sudo usermod -a -G group-name username
 
 where group-name is the data found before, and username is your linux user name. You will need to log out and in again for this change to take effect. such as:
 
-    usermod -a -G dialout tengwang
+    sudo usermod -a -G dialout tengwang
     
 	
 	
