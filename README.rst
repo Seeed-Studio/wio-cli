@@ -80,12 +80,18 @@ Config your main server::
 
 Serial port permissions
 ==========
-- now as normal user from terminal:
-ls -l /dev/ttyUSB*
+1. now as normal user from terminal:
+    
+    ls -l /dev/ttyUSB*
+    
 you will get something like:
-crw-rw---- 1 root uucp 188, 0 5 apr 23.01 ttyUSB0
+    
+    crw-rw---- 1 root uucp 188, 0 5 apr 23.01 ttyUSB0
+
 The "0" might be a different number, or multiple entries might be returned. In the first case the data we need is "uucp", in the second "dialout" (is the group owner of the file.
 
-- Now we just need to add our user to the group:
-usermod -a -G group-name username
+2. Now we just need to add our user to the group:
+    
+    usermod -a -G group-name username
+
 where group-name is the data found before, and username is your linux user name. You will need to log out and in again for this change to take effect.
