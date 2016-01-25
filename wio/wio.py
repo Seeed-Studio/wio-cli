@@ -12,7 +12,7 @@ import click
 import requests
 import signal
 
-version = '0.0.16'
+version = '0.0.20'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
@@ -235,7 +235,7 @@ def list(wio):
         if n["online"]:
             params = {"access_token":n["node_key"]}
             try:
-                r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params, timeout=10)
+                r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params, timeout=15)
                 r.raise_for_status()
                 json_response = r.json()
             except requests.exceptions.HTTPError as e:
@@ -445,11 +445,11 @@ def setup(wio):
     # list serial
     try:
         ports = serial_list.serial_ports()
-    except serial.SerialException as e
+    except serial.SerialException as e:
         click.secho('>> ', fg='red', nl=False)
-        click.secho(e, fg='red')
+        click.echo(e)
         if e.errno == 13:
-            click.secho("https://github.com/Seeed-Studio/wio-cli#serial-port-permissions", fg='red')
+            click.echo("For more information, see https://github.com/Seeed-Studio/wio-cli#serial-port-permissions")
         return
     # click.echo(ports)
     count = len(ports)
@@ -495,9 +495,9 @@ def setup(wio):
         thread.stop('')
         thread.join()
         click.secho('>> ', fg='red', nl=False)
-        click.secho(e, fg='red')
+        click.echo(e)
         if e.errno == 13:
-            click.secho("http://playground.arduino.cc/Linux/All#Permission", fg='red')
+            click.echo("For more information, see https://github.com/Seeed-Studio/wio-cli#serial-port-permissions")
         return
 
     thread.stop('')
