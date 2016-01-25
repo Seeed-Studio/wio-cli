@@ -2,7 +2,7 @@
 Wio Link Command Line Interface
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.0.14-orange.svg
+.. image:: https://img.shields.io/badge/pypi-0.0.22-orange.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 
@@ -65,9 +65,18 @@ Add a new device with USB connect::
 
     wio setup
 
-config your main server::
+Delete a device::
+
+    wio delete <device_sn>
+
+    example:
+    $wio delete 2885b2cab8abc5fb8e229e4a77bf5e4d
+    >> Delete device commplete!
+
+Config your main server::
 
     wio config mserver
+
 
 Serial port permissions
 ==========

@@ -12,7 +12,7 @@ import click
 import requests
 import signal
 
-version = '0.0.20'
+version = '0.0.22'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
@@ -280,7 +280,10 @@ def call(wio, method, endpoint, token,):
     \b
     DOES:
         Call a api on your devices.
-        wio call device_token request_method device_path
+        token: device_token
+        method: GET or POST
+        endpoint: device_path, such as: /v1/node/GroveTempHumProD0/temperature
+        wio call <device_token> <request_method> <device_path>
 
     \b
     EXAMPLE:
@@ -705,6 +708,48 @@ def setup(wio):
     click.echo()
     click.echo(click.style('> ', fg='green') +
         click.style("Configuration complete!", fg='white', bold=True))
+
+@cli.command()
+@click.argument('sn')
+@pass_wio
+def delete(wio, sn):
+    '''
+    Delete a device.
+
+    \b
+    DOES:
+        Delete a device.
+        sn: device_sn
+        wio delete <device_sn>
+
+    \b
+    EXAMPLE:
+        wio delete 2885b2cab8abc5fb8e229e4a77bf5e4d
+    '''
+    user_token = wio.config.get("token", None)
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix or not user_token:
+        click.echo(click.style('>> ', fg='red') + "Please login, use " +
+            click.style("wio login", fg='green'))
+        return
+
+    params = {"access_token":user_token, "node_sn":sn}
+    try:
+        r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10)
+        r.raise_for_status()
+        json_response = r.json()
+    except requests.exceptions.HTTPError as e:
+        if r.status_code == 400:
+            error = r.json().get("error", None)
+            click.secho(">> %s" %error, fg='red')
+        else:
+            click.secho(">> %s" %e, fg='red')
+        return
+    except Exception as e:
+        click.secho(">> %s" %e, fg='red')
+        return
+
+    click.secho('>> Delete device commplete!', fg='white')
 
 # @cli.command()
 # def test():
