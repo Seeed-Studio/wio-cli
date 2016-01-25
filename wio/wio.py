@@ -12,7 +12,7 @@ import click
 import requests
 import signal
 
-version = '0.0.14'
+version = '0.0.16'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
@@ -61,13 +61,7 @@ def cli(ctx):
 
     For more information Run: wio <command_name> --help
     """
-    # Create a wio object and remember it as as the context object.  From
-    # this point onwards other commands can refer to it by using the
-    # @pass_wio decorator.
     ctx.obj = Wio()
-    # ctx.obj.verbose = verbose
-    # config.json
-    # cur_dir = os.path.split(os.path.realpath(__file__))[0]
     cur_dir = os.path.abspath(os.path.expanduser("~/.wio"))
     if not os.path.exists(cur_dir):
         text = {"email":"", "token":""}
@@ -84,7 +78,8 @@ def login_server(wio):
         click.echo("1.) International[https://iot.seeed.cc]")
         click.echo("2.) China[https://cn.iot.seeed.cc]")
         click.echo("3.) Local")
-        server = click.prompt("choice main server", type=int)
+        click.secho('? ', fg='green', nl=False)
+        server = click.prompt(click.style('Please choice main server', bold=True), type=int)
         if server == 1:
             wio.set_config("mserver","https://iot.seeed.cc")
             wio.set_config("mserver_ip","45.79.4.239")
@@ -96,13 +91,14 @@ def login_server(wio):
         elif server == 3:
             break
         else:
+            click.echo(click.style('>> ', fg='red') + "invalid input.")
             continue
 
-    click.secho('> ', fg='green', nl=False)
-    mserver_ip = click.prompt("Please enter local main server ip")
+    click.secho('? ', fg='green', nl=False)
+    mserver_ip = click.prompt(click.style('Please enter local main server ip', bold=True))
 
-    click.secho('> ', fg='green', nl=False)
-    mserver = click.prompt("Please enter local main server url")
+    click.secho('? ', fg='green', nl=False)
+    mserver = click.prompt(click.style("Please enter local main server url", bold=True))
 
     wio.set_config("mserver", mserver)
     wio.set_config("mserver_ip", mserver_ip)
@@ -125,10 +121,10 @@ def login(wio):
     if mserver:
         click.echo(click.style('> ', fg='green') + "Current main server is: " +
             click.style(mserver, fg='green'))
-
-    if click.confirm(click.style('Would you like log in with a different main server?', bold=True), default=False):
+        if click.confirm(click.style('Would you like log in with a different main server?', bold=True), default=False):
+            login_server(wio)
+    else:
         login_server(wio)
-
     email = click.prompt(click.style('? ', fg='green') +
         click.style('Please enter your email address', bold=True), type=str)
     password = click.prompt(click.style('? ', fg='green') +
@@ -184,7 +180,7 @@ def list(wio):
     user_token = wio.config.get("token", None)
     api_prefix = wio.config.get("mserver", None)
     if not api_prefix or not user_token:
-        click.echo(click.style('>>', fg='red') + "Please login, use " +
+        click.echo(click.style('>> ', fg='red') + "Please login, use " +
             click.style("wio login", fg='green'))
         return
 
@@ -290,10 +286,13 @@ def call(wio, method, endpoint, token,):
     EXAMPLE:
         wio call 98dd464bd268d4dc4cb9b37e4e779313 GET /v1/node/GroveTempHumProD0/temperature
     '''
+    user_token = wio.config.get("token", None)
     api_prefix = wio.config.get("mserver", None)
-    if not api_prefix:
-        click.echo("Please login [wio login]")
+    if not api_prefix or not user_token:
+        click.echo(click.style('>> ', fg='red') + "Please login, use " +
+            click.style("wio login", fg='green'))
         return
+
     api = "%s%s?access_token=%s" %(api_prefix, endpoint, token)
 
     try:
@@ -334,6 +333,13 @@ def state(wio):
     USE:
         wio state
     '''
+    user_token = wio.config.get("token", None)
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix or not user_token:
+        click.echo(click.style('>> ', fg='red') + "Please login, use " +
+            click.style("wio login", fg='green'))
+        return
+
     email = wio.config.get("email",None)
     mserver = wio.config.get("mserver",None)
     mserver_ip = wio.config.get("mserver_ip",None)
@@ -365,32 +371,7 @@ def config(wio, command):
         wio config main-server
     '''
     if command == "main-server":
-        while True:
-            click.echo("1.) International[https://iot.seeed.cc]")
-            click.echo("2.) China[https://cn.iot.seeed.cc]")
-            click.echo("3.) Local")
-            server = click.prompt("choice main server", type=int)
-            if server == 1:
-                wio.set_config("mserver","https://iot.seeed.cc")
-                wio.set_config("mserver_ip","45.79.4.239")
-                return
-            elif server == 2:
-                wio.set_config("mserver","https://cn.iot.seeed.cc")
-                wio.set_config("mserver_ip","120.25.216.117")
-                return
-            elif server == 3:
-                break
-            else:
-                continue
-
-        click.secho('> ', fg='green', nl=False)
-        mserver_ip = click.prompt("Please enter local main server ip")
-
-        click.secho('> ', fg='green', nl=False)
-        mserver = click.prompt("Please enter local main server url")
-
-        wio.set_config("mserver", mserver)
-        wio.set_config("mserver_ip", mserver_ip)
+        login_server(wio)
 
 @cli.command()
 @pass_wio
@@ -406,6 +387,13 @@ def setup(wio):
     USE:
         wio setup
     '''
+    token = wio.config.get("token", None)
+    api_prefix = wio.config.get("mserver", None)
+    if not api_prefix or not token:
+        click.echo(click.style('>> ', fg='red') + "Please login, use " +
+            click.style("wio login", fg='green'))
+        return
+
     click.secho('> ', fg='green', nl=False)
     click.echo("Setup is easy! Let's get started...\n")
     click.secho('! ', fg='green', nl=False)
@@ -423,12 +411,6 @@ def setup(wio):
     click.secho('? ', fg='green', nl=False)
     if not click.confirm(click.style('Would you like continue?', bold=True), default=True):
         click.echo('Quit setup!')
-        return
-
-    token = wio.config.get("token", None)
-    api_prefix = wio.config.get("mserver", None)
-    if not api_prefix or not token:
-        click.echo("Please login [wio login]")
         return
 
     thread = termui.waiting_echo("Getting message from main server...")
@@ -461,7 +443,14 @@ def setup(wio):
     node_sn = json_response["node_sn"]
 
     # list serial
-    ports = serial_list.serial_ports()
+    try:
+        ports = serial_list.serial_ports()
+    except serial.SerialException as e
+        click.secho('>> ', fg='red', nl=False)
+        click.secho(e, fg='red')
+        if e.errno == 13:
+            click.secho("https://github.com/Seeed-Studio/wio-cli#serial-port-permissions", fg='red')
+        return
     # click.echo(ports)
     count = len(ports)
     port = None
@@ -483,7 +472,7 @@ def setup(wio):
 
     if not port:
         click.secho('>> ', fg='red', nl=False)
-        click.echo("No found device!, Plese connect your Wiolink with USB.")
+        click.echo("No found device! Plese connect your Wiolink with USB.")
         return
     click.echo(click.style('> ', fg='green') +
         "I have detected a " +
@@ -496,11 +485,20 @@ def setup(wio):
     thread.start()
 
     flag = False
-    with serial.Serial(port, 115200, timeout=5) as ser:
-        cmd = 'Blank?\r\n'
-        ser.write(cmd.encode('utf-8'))
-        if 'Node' in ser.readline():
-            flag = True
+    try:
+        with serial.Serial(port, 115200, timeout=5) as ser:
+            cmd = 'Blank?\r\n'
+            ser.write(cmd.encode('utf-8'))
+            if 'Node' in ser.readline():
+                flag = True
+    except serial.SerialException as e:
+        thread.stop('')
+        thread.join()
+        click.secho('>> ', fg='red', nl=False)
+        click.secho(e, fg='red')
+        if e.errno == 13:
+            click.secho("http://playground.arduino.cc/Linux/All#Permission", fg='red')
+        return
 
     thread.stop('')
     thread.join()
@@ -708,23 +706,6 @@ def setup(wio):
     click.echo(click.style('> ', fg='green') +
         click.style("Configuration complete!", fg='white', bold=True))
 
-# @cli.command(options_metavar='<options>')
-# @click.option('--count', default=1, help='number of greetings',
-#               metavar='<int>')
-# @click.argument('name', metavar='<name>')
-# def hello(count, name):
-#     """This script prints hello <name> <int> times."""
-#     for x in range(count):
-#         click.echo('Hello %s!' % name)
-#
-# @cli.command()
-# @click.option('--count', default=1, help='number of greetings')
-# @click.argument('name')
-# def test(count, name):
-#     """This script prints hello <name> <int> times."""
-#     for x in range(count):
-#         click.echo('Hello %s!' % name)
-
 # @cli.command()
 # def test():
-#     value = click.prompt('Enter one more', default='', show_default=False)
+#     click.echo('<a href="http://www.google.com">Google</a>')
