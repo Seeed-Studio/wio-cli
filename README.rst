@@ -1,5 +1,5 @@
 ===============================
-Wio Link Command Line Interface
+Wio Link Command Line Toolset
 ===============================
 
 .. image:: https://img.shields.io/badge/pypi-0.0.22-orange.svg
@@ -12,6 +12,10 @@ Getting Started
 Wio Link Client can be installed from PyPI using pip::
 
     pip install wio-cli
+    
+If you have already installed the library, execute the following command to ensure you’re using the latest library.
+
+	pip install wio-cli --upgrade    
 
 A list of global options and supported, commands is shown with ``--help``::
 
@@ -20,6 +24,8 @@ A list of global options and supported, commands is shown with ``--help``::
 More info, that can be used to get help text for a specific command::
 
     wio <command> --help
+
+- [Getting Started with Wio Link Command Line Toolset](http://www.seeedstudio.com/recipe/1136-getting-started-with-wio-link-command-line-toolset.html)
 
 Command
 ==========
@@ -76,7 +82,7 @@ Delete a device::
 Config your main server::
 
     wio config mserver
-
+    
 
 Serial port permissions
 ==========
@@ -98,5 +104,5 @@ where group-name is the data found before, and username is your linux user name.
 
     sudo usermod -a -G dialout tengwang
     
-	
+
 	
