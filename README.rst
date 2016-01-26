@@ -25,7 +25,7 @@ More info, that can be used to get help text for a specific command::
 
     wio <command> --help
 
-- [Getting Started with Wio Link Command Line Toolset](http://www.seeedstudio.com/recipe/1136-getting-started-with-wio-link-command-line-toolset.html)
+[Getting Started with Wio Link Command Line Toolset](http://www.seeedstudio.com/recipe/1136-getting-started-with-wio-link-command-line-toolset.html)
 
 Command
 ==========
