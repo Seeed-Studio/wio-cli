@@ -29,7 +29,9 @@ def serial_ports():
             s.close()
             result.append(port)
         except serial.SerialException as e:
-            raise e
+            if e.errno == 13:
+                raise e
+            pass
         except OSError:
             pass
     return result

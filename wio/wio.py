@@ -12,7 +12,7 @@ import click
 import requests
 import signal
 
-version = '0.0.22'
+version = '0.0.25'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
@@ -300,9 +300,9 @@ def call(wio, method, endpoint, token,):
 
     try:
         if method == "GET":
-            r = requests.get(api, timeout=10)
+            r = requests.get(api, timeout=15)
         elif method == "POST":
-            r = requests.post(api, timeout=10)
+            r = requests.post(api, timeout=15)
         else:
             click.secho(">> METHOD [%s] is wrong, should be GET or POST." %method, fg='red')
             return
