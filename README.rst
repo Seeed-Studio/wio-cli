@@ -13,9 +13,9 @@ Wio Link Client can be installed from PyPI using pip::
 
     pip install wio-cli
     
-If you have already installed the library, execute the following command to ensure you’re using the latest library.
+If you have already installed the library, execute the following command to ensure you’re using the latest library::
 
-	pip install wio-cli --upgrade    
+    pip install wio-cli --upgrade    
 
 A list of global options and supported, commands is shown with ``--help``::
 
