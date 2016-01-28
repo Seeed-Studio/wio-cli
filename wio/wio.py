@@ -12,7 +12,7 @@ import click
 import requests
 import signal
 
-version = '0.0.25'
+version = '0.0.26'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
@@ -22,6 +22,7 @@ nodes_rename_endpoint = "/v1/nodes/rename"
 nodes_delete_endpoint = "/v1/nodes/delete"
 node_resources_endpoint = "/v1/node/resources"
 
+verify = False
 class Wio(object):
 
     def __init__(self):
@@ -98,7 +99,7 @@ def login_server(wio):
     mserver_ip = click.prompt(click.style('Please enter local main server ip', bold=True))
 
     click.secho('? ', fg='green', nl=False)
-    mserver = click.prompt(click.style("Please enter local main server url", bold=True))
+    mserver = click.prompt(click.style("Please enter local main server url(e.g. https://192.168.31.2)", bold=True))
 
     wio.set_config("mserver", mserver)
     wio.set_config("mserver_ip", mserver_ip)
@@ -136,7 +137,7 @@ def login(wio):
     params = {"email":email, "password":password}
     api_prefix = wio.config.get("mserver", None)
     try:
-        r = requests.post("%s%s" %(api_prefix, login_endpoint), params=params, timeout=10)
+        r = requests.post("%s%s" %(api_prefix, login_endpoint), params=params, timeout=10, verify=verify)
         r.raise_for_status()
         json_response = r.json()
     except requests.exceptions.HTTPError as e:
@@ -189,7 +190,7 @@ def list(wio):
     thread.start()
     params = {"access_token":user_token}
     try:
-        r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params, timeout=10)
+        r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params, timeout=10, verify=verify)
         r.raise_for_status()
         json_response = r.json()
     except requests.exceptions.HTTPError as e:
@@ -214,7 +215,7 @@ def list(wio):
         if n['name'] == 'node000':
             params = {"access_token":user_token, "node_sn":n['node_sn']}
             try:
-                r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10)
+                r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10, verify=verify)
                 r.raise_for_status()
                 json_response = r.json()
             except requests.exceptions.HTTPError as e:
@@ -235,7 +236,7 @@ def list(wio):
         if n["online"]:
             params = {"access_token":n["node_key"]}
             try:
-                r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params, timeout=15)
+                r = requests.get("%s%s" %(api_prefix, well_known_endpoint), params=params, timeout=15, verify=verify)
                 r.raise_for_status()
                 json_response = r.json()
             except requests.exceptions.HTTPError as e:
@@ -300,9 +301,9 @@ def call(wio, method, endpoint, token,):
 
     try:
         if method == "GET":
-            r = requests.get(api, timeout=15)
+            r = requests.get(api, timeout=15, verify=verify)
         elif method == "POST":
-            r = requests.post(api, timeout=15)
+            r = requests.post(api, timeout=15, verify=verify)
         else:
             click.secho(">> METHOD [%s] is wrong, should be GET or POST." %method, fg='red')
             return
@@ -421,7 +422,7 @@ def setup(wio):
     thread.start()
     try:
         params = {"name":"node000","access_token":token}
-        r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params, timeout=10)
+        r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params, timeout=10, verify=verify)
         r.raise_for_status()
         json_response = r.json()
     except requests.exceptions.HTTPError as e:
@@ -735,7 +736,7 @@ def delete(wio, sn):
 
     params = {"access_token":user_token, "node_sn":sn}
     try:
-        r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10)
+        r = requests.post("%s%s" %(api_prefix, nodes_delete_endpoint), params=params, timeout=10, verify=verify)
         r.raise_for_status()
         json_response = r.json()
     except requests.exceptions.HTTPError as e:
