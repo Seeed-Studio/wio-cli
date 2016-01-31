@@ -11,8 +11,9 @@ import termui
 import click
 import requests
 import signal
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-version = '0.0.26'
+version = '0.0.27'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
@@ -23,6 +24,7 @@ nodes_delete_endpoint = "/v1/nodes/delete"
 node_resources_endpoint = "/v1/node/resources"
 
 verify = False
+
 class Wio(object):
 
     def __init__(self):
@@ -73,6 +75,9 @@ def cli(ctx):
     ctx.obj.config = config
 
     signal.signal(signal.SIGINT, sigint_handler)
+
+    if not verify:
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def login_server(wio):
     while True:

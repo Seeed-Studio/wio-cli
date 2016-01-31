@@ -42,7 +42,7 @@ def tree(list):
             click.secho(l['name'] + ' (%s)' %l['onoff'], fg='green')
         else:
             click.secho(l['name'] + ' (%s)' %l['onoff'], fg='cyan')
-        click.echo('|   |--', nl=False)
+        click.echo('|   |-- ', nl=False)
         click.echo('sn: ' + l['node_sn'])
         click.echo('|   |-- ', nl=False)
         click.echo('token: ' + l['node_key'])
