@@ -245,21 +245,24 @@ def list(wio):
                 r.raise_for_status()
                 json_response = r.json()
             except requests.exceptions.HTTPError as e:
-                thread.stop('')
-                thread.join()
+                # thread.stop('')
+                # thread.join()
                 if r.status_code == 400:
                     error = r.json().get("error", None)
                     click.secho(">> %s" %error, fg='red')
                 else:
                     click.secho(">> %s" %e, fg='red')
-                return
+                n['well_known'] = []
+                # n['onoff'] = 'offline'
             except Exception as e:
-                thread.stop('')
-                thread.join()
+                # thread.stop('')
+                # thread.join()
                 click.secho(">> %s" %e, fg='red')
-                return
-            well_known = json_response["well_known"] #todo error risk
-            n['well_known'] = well_known
+                n['well_known'] = []
+            else:
+                well_known = json_response["well_known"] #todo error risk
+                n['well_known'] = well_known
+
             n['onoff'] = 'online'
         else:
             n['well_known'] = []
