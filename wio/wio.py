@@ -13,7 +13,7 @@ import requests
 import signal
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-version = '0.0.28'
+version = '0.0.29'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
