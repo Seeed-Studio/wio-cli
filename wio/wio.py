@@ -429,7 +429,7 @@ def setup(wio):
     thread.daemon = True
     thread.start()
     try:
-        params = {"name":"node000","access_token":token}
+        params = {"name":"node000","board":"Wio Link v1.0","access_token":token}
         r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params, timeout=10, verify=verify)
         r.raise_for_status()
         json_response = r.json()
