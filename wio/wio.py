@@ -59,7 +59,7 @@ def sigint_handler(signum, frame):
 @click.pass_context
 def cli(ctx):
     """\b
-    Welcome to the Wiolink Command line utility!
+    Welcome to the Wio Command line utility!
     https://github.com/Seeed-Studio/wio-cli
 
     For more information Run: wio <command_name> --help
@@ -113,11 +113,11 @@ def login_server(wio):
 @pass_wio
 def login(wio):
     '''
-    Login with your Wiolink account.
+    Login with your Wio account.
 
     \b
     DOES:
-        Login and save an access token for interacting with your account on the Wiolink.
+        Login and save an access token for interacting with your account on the Wio.
 
     \b
     USE:
@@ -484,11 +484,11 @@ def setup(wio):
 
     if not port:
         click.secho('>> ', fg='red', nl=False)
-        click.echo("No found device! Plese connect your Wiolink with USB.")
+        click.echo("No found device! Plese connect your Wio with USB.")
         return
     click.echo(click.style('> ', fg='green') +
         "I have detected a " +
-        click.style("Wiolink ", fg='green') +
+        click.style("Wio ", fg='green') +
         "connected via USB.")
 
     # check is configure mode?
@@ -517,16 +517,16 @@ def setup(wio):
 
     if flag:
         click.secho('> ', fg='green', nl=False)
-        click.secho("Found Wiolink.", fg='green', bold=True)
+        click.secho("Found Wio.", fg='green', bold=True)
         click.echo()
     else:
         click.secho('> ', fg='green', nl=False)
-        click.secho("No nearby Wiolink detected.", fg='white', bold=True)
+        click.secho("No nearby Wio detected.", fg='white', bold=True)
         if click.confirm(click.style('? ', fg='green') +
-                click.style("Would you like to wait and monitor for Wiolink entering configure mode", bold=True),
+                click.style("Would you like to wait and monitor for Wio entering configure mode", bold=True),
                 default=True):
 
-            thread = termui.waiting_echo("Waiting for a wild Wiolink to appear... (press ctrl + C to exit)")
+            thread = termui.waiting_echo("Waiting for a wild Wio to appear... (press ctrl + C to exit)")
             thread.daemon = True
             thread.start()
 
@@ -542,7 +542,7 @@ def setup(wio):
             thread.stop('')
             thread.join()
             click.secho('> ', fg='green', nl=False)
-            click.secho("Found Wiolink.", fg='green', bold=True)
+            click.secho("Found Wio.", fg='green', bold=True)
             click.echo()
         else:
             click.secho('> ', fg='green', nl=False)
@@ -552,7 +552,7 @@ def setup(wio):
         if not click.confirm(click.style('? ', fg='green') +
                     click.style("Would you like to manually enter your Wi-Fi network configuration?", bold=True),
                     default=False):
-            thread = termui.waiting_echo("Asking the Wiolink to scan for nearby Wi-Fi networks...")
+            thread = termui.waiting_echo("Asking the Wio to scan for nearby Wi-Fi networks...")
             thread.daemon = True
             thread.start()
 
@@ -581,7 +581,7 @@ def setup(wio):
                     click.echo("%s.) %s" %(x, ssid_list[x]))
                 click.secho('? ', fg='green', nl=False)
                 value = click.prompt(
-                            click.style('Please select the network to which your Wiolink should connect', bold=True),
+                            click.style('Please select the network to which your Wio should connect', bold=True),
                             type=int)
                 if value >= 0 and value < len(ssid_list):
                     ssid = ssid_list[value]
@@ -601,7 +601,7 @@ def setup(wio):
         click.style('Please enter the name of a device will be created', bold=True), type=str)
 
         msvr = wio.config.get("mserver", None)
-        click.echo(click.style('> ', fg='green') + "Here's what we're going to send to the Wiolink:")
+        click.echo(click.style('> ', fg='green') + "Here's what we're going to send to the Wio:")
         click.echo()
         # click.echo(click.style(' - ', fg='green') + "main server: %s" %msvr)
         click.echo(click.style('> ', fg='green') + "Wi-Fi network: " +
@@ -637,7 +637,7 @@ def setup(wio):
             # while True:
             if "ok" in ser.readline():
                 click.echo(click.style('\r> ', fg='green') + "Send Wi-Fi information to device success.")
-                thread.message("The Wiolink now attempt to connect to main server...")
+                thread.message("The Wio now attempt to connect to main server...")
                 send_flag = True
         if send_flag:
             break
@@ -673,20 +673,20 @@ def setup(wio):
 
         for n in json_response["nodes"]:
             if n["node_sn"] == node_sn and n["online"]:
-                click.echo(click.style('\r> ', fg='green') + "The Wiolink connect to main server success.              ")
-                thread.message("Setting Wiolink name...")
+                click.echo(click.style('\r> ', fg='green') + "The Wio connect to main server success.              ")
+                thread.message("Setting Wio name...")
                 state_online = True
                 break
         if state_online:
             break
 
-        thread.message("The Wiolink now attempt to connect to main server... [%s]" %(30-i))
+        thread.message("The Wio now attempt to connect to main server... [%s]" %(30-i))
         time.sleep(1)
 
     if not state_online:
         thread.stop('')
         thread.join()
-        click.echo(click.style('\r>> ', fg='red') + "The Wiolink connect to main server failure.")
+        click.echo(click.style('\r>> ', fg='red') + "The Wio connect to main server failure.")
         click.secho("\n> Please check info you enter, Try again.", fg='white', bold=True)
 
         return
@@ -710,7 +710,7 @@ def setup(wio):
         thread.join()
         click.secho(">> %s" %e, fg='red')
         return
-    click.echo(click.style('\r> ', fg='green') + "Set Wiolink name success.")
+    click.echo(click.style('\r> ', fg='green') + "Set Wio name success.")
 
     thread.stop('')
     thread.join()
