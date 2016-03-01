@@ -1,5 +1,11 @@
 import click
+from wio import termui
 from wio.wio import pass_wio
+from wio.wio import login_endpoint
+from wio.wio import verify
+from wio.wio import login_server
+
+import requests
 
 @click.command()
 @pass_wio

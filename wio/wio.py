@@ -2,12 +2,12 @@ import os
 import sys
 import posixpath
 import json
-import time
+# import time
 # import glob
-import serial
-import serial_list
+# import serial
+# import serial_list
 import termui
-import udp
+# import udp
 
 import click
 import requests

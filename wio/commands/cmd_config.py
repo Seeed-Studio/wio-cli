@@ -1,5 +1,6 @@
 import click
 from wio.wio import pass_wio
+from wio.wio import login_server
 
 @click.command()
 @click.argument('command', metavar='<main-server>')

@@ -1,5 +1,14 @@
 import click
+from wio import termui
 from wio.wio import pass_wio
+from wio.wio import node_list_endpoint
+from wio.wio import node_resources_endpoint
+from wio.wio import well_known_endpoint
+from wio.wio import nodes_delete_endpoint
+from wio.wio import boards
+from wio.wio import verify
+
+import requests
 
 @click.command()
 @pass_wio

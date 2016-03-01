@@ -1,5 +1,9 @@
 import click
+from wio import termui
 from wio.wio import pass_wio
+from wio.wio import verify
+
+import requests
 
 @click.command()
 @click.argument('token')
