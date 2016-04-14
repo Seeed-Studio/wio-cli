@@ -8,6 +8,9 @@ Wio Link Command Line Toolset
 
 Getting Started
 ===============
+**Note:** If can't find the USB device, should be install USB to Serial driver first, `download here`_
+
+.. _download here: https://www.silabs.com/products/mcu/Pages/USBtoUARTBridgeVCPDrivers.aspx
 
 Wio Link Client can be installed from PyPI using pip::
 
