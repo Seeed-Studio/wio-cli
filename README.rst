@@ -2,7 +2,7 @@
 Wio Link Command Line Interface
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.0.29-orange.svg
+.. image:: https://img.shields.io/badge/pypi-0.0.30-green.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 

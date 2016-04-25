@@ -5,15 +5,15 @@ import json
 import time
 # import glob
 import serial
-import serial_list
-import termui
+from . import serial_list
+from . import termui
 
 import click
 import requests
 import signal
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-version = '0.0.29'
+version = '0.0.30'
 
 login_endpoint = "/v1/user/login"
 node_list_endpoint = "/v1/nodes/list"
