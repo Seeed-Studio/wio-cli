@@ -6,7 +6,7 @@ import json
 # import glob
 # import serial
 # import serial_list
-import termui
+from . import termui
 # import udp
 
 import click
