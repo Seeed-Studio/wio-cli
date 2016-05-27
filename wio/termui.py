@@ -36,6 +36,9 @@ class waiting_echo(threading.Thread):
         self.msg = msg
 
 def tree(list):
+    if not list:
+        click.echo('No Wio devices could be found.')
+        return
     for l in list[:-1]:
         click.echo('|-- ', nl=False)
         if l['online']:
