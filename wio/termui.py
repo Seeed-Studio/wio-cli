@@ -36,13 +36,16 @@ class waiting_echo(threading.Thread):
         self.msg = msg
 
 def tree(list):
+    if not list:
+        click.echo('No Wio devices could be found.')
+        return
     for l in list[:-1]:
         click.echo('|-- ', nl=False)
         if l['online']:
-            click.secho(l['name'] + ' (%s)' %l['onoff'], fg='green')
+            click.secho(l['name'] + ' (%s) [%s]' %(l['onoff'], l['board'].split()[1]), fg='green')
         else:
-            click.secho(l['name'] + ' (%s)' %l['onoff'], fg='cyan')
-        click.echo('|   |--', nl=False)
+            click.secho(l['name'] + ' (%s) [%s]' %(l['onoff'], l['board'].split()[1]), fg='cyan')
+        click.echo('|   |-- ', nl=False)
         click.echo('sn: ' + l['node_sn'])
         click.echo('|   |-- ', nl=False)
         click.echo('token: ' + l['node_key'])
@@ -57,9 +60,9 @@ def tree(list):
     l = list[-1]
     click.echo('|-- ', nl=False)
     if l['online']:
-        click.secho(l['name'] + ' (%s)' %l['onoff'], fg='green')
+        click.secho(l['name'] + ' (%s) [%s]' %(l['onoff'], l['board'].split()[1]), fg='green')
     else:
-        click.secho(l['name'] + ' (%s)' %l['onoff'], fg='cyan')
+        click.secho(l['name'] + ' (%s) [%s]' %(l['onoff'], l['board'].split()[1]), fg='cyan')
     click.echo('    |-- ', nl=False)
     click.echo('sn: ' + l['node_sn'])
     click.echo('    |-- ', nl=False)

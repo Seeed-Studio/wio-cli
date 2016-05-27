@@ -2,7 +2,7 @@
 Wio Link Command Line Toolset
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.0.29-orange.svg
+.. image:: https://img.shields.io/badge/pypi-0.1.0-green.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 
@@ -15,10 +15,10 @@ Getting Started
 Wio Link Client can be installed from PyPI using pip::
 
     pip install wio-cli
-    
+
 If you have already installed the library, execute the following command to ensure you’re using the latest library::
 
-    pip install wio-cli --upgrade    
+    pip install wio-cli --upgrade
 
 A list of global options and supported, commands is shown with ``--help``::
 
@@ -85,27 +85,24 @@ Delete a device::
 Config your main server::
 
     wio config mserver
-    
+
 
 Serial port permissions
 ==========
 1. now as normal user from terminal:
-    
+
     ls -l /dev/ttyUSB*
-    
+
 you will get something like:
-    
+
     crw-rw---- 1 root dialout 188, 0 5 apr 23.01 ttyUSB0
 
 The "0" might be a different number, or multiple entries might be returned. In the first case the data we need is "uucp", in the second "dialout" (is the group owner of the file.
 
 2. Now we just need to add our user to the group:
-    
+
     sudo usermod -a -G group-name username
 
 where group-name is the data found before, and username is your linux user name. You will need to log out and in again for this change to take effect. such as:
 
     sudo usermod -a -G dialout tengwang
-    
-
-	
