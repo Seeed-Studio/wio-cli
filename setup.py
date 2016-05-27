@@ -18,7 +18,7 @@ setup(
     author='Ten Wong',
     author_email='wangtengoo7@gmail.com',
     license='MIT',
-    packages=['wio'],
+    packages=['wio', 'wio.commands'],
     # data_files=[('config', ['wio/config.json'])],
     # include_package_data=True,
     install_requires=[

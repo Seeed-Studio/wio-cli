@@ -37,11 +37,11 @@ def udp_list():
 
 def send(cmd):
     s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-    s.settimeout(3) 
+    s.settimeout(3)
     flag = False
     while 1:
-        s.sendto(cmd, addr)
         try:
+            s.sendto(cmd, addr)
             while 1:
                 data, a = s.recvfrom(1024)
                 if 'ok' in data:

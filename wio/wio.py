@@ -14,7 +14,7 @@ import requests
 import signal
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-version = '0.0.30'
+version = '0.1.0'
 
 WIO_LINK_V1_0 = 'Wio Link v1.0'
 WIO_NODE_V1_0 = 'Wio Node v1.0'
@@ -193,7 +193,7 @@ def login_server(wio):
 #     thread.join()
 #     click.secho("\r> ", fg='green', nl=False)
 #     click.echo("Successfully completed login!")
-
+#
 # @click.command()
 # @pass_wio
 # def list(wio):
@@ -300,7 +300,7 @@ def login_server(wio):
 #     thread.join()
 #
 #     termui.tree(node_list)
-
+#
 # @click.command()
 # @click.argument('token')
 # @click.argument('method')
@@ -355,7 +355,7 @@ def login_server(wio):
 #         return
 #
 #     click.echo(r.json())
-
+#
 # @click.command()
 # @pass_wio
 # def state(wio):
@@ -389,7 +389,7 @@ def login_server(wio):
 #     click.echo("main server: " + click.style(mserver, fg='green', bold=True))
 #     click.secho('> ', fg='green', nl=False)
 #     click.echo("main server ip: " + click.style(mserver_ip, fg='green', bold=True))
-
+#
 # @click.command()
 # @click.argument('command', metavar='<main-server>')
 # # @click.option('--mserver', default= None, help='Set main server ip, such as 192.168.21.48')
