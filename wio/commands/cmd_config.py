@@ -1,6 +1,6 @@
 import click
 from wio.wio import pass_wio
-from wio.wio import login_server
+from wio.wio import choise_server
 
 @click.command()
 @click.argument('command', metavar='<main-server>')
@@ -20,4 +20,4 @@ def cli(wio, command):
         wio config main-server
     '''
     if command == "main-server":
-        login_server(wio)
+        choise_server(wio)
