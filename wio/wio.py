@@ -2,6 +2,7 @@ import os
 import sys
 import posixpath
 import json
+import socket
 from . import termui
 import click
 import requests
@@ -129,13 +130,18 @@ def choise_server(wio):
             click.echo(click.style('>> ', fg='red') + "invalid input.")
             continue
 
-    # click.secho('? ', fg='green', nl=False)
-    # mserver_ip = click.prompt(click.style('Please enter Customize Server ip', bold=True))
+    while 1:
+        click.secho('? ', fg='green', nl=False)
+        mserver = click.prompt(click.style("Please enter Customize Server url(e.g. https://192.168.31.2)", bold=True))
+        try:
+            mserver_ip = socket.gethostbyname(mserver.split('//')[1])
+            break
+        except IndexError:
+            click.secho(">> url is not correct format!", fg='red')
+            continue
+        except Exception as e:
+            click.secho(">> %s" %e, fg='red')
+            continue
 
-    click.secho('? ', fg='green', nl=False)
-    mserver = click.prompt(click.style("Please enter Customize Server url(e.g. https://192.168.31.2)", bold=True))
-
-    # TODO(ten): pick the ip
-    mserver_ip = ''
     wio.set_config("mserver", mserver)
     wio.set_config("mserver_ip", mserver_ip)
