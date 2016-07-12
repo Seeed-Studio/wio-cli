@@ -108,7 +108,7 @@ def check_connect(mserver_url, token, node_sn, d_name):
 
     return True
 
-def upd_send(msvr_ip, xsvr_ip, node_sn, node_key):
+def upd_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key):
     click.echo()
     click.secho('! ', fg='green', nl=False)
     click.echo("PROTIP: " +
@@ -190,12 +190,17 @@ def upd_send(msvr_ip, xsvr_ip, node_sn, node_key):
     thread = termui.waiting_echo("Sending Wi-Fi information to device...")
     thread.daemon = True
     thread.start()
-
-    # send serial command
-    # msvr_ip = wio.config.get("mserver_ip", None)
-    # xsvr_ip = msvr_ip
+    # get version
+    version = udp.udp_version()
+    # send udp command
     send_flag = False
-    cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, msvr_ip, xsvr_ip)
+    if version <= 1.1:
+        cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr_ip, msvr_ip)
+    elif version >=1.2:
+        cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr, msvr)
+    else:
+        cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr, msvr)
+    click.echo(cmd)
     result = udp.send(cmd)
     thread.stop('')
     thread.join()
@@ -363,7 +368,8 @@ def serial_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key, port):
             ser.write(cmd.encode('utf-8'))
             if "ok" in ser.readline():
                 click.echo(click.style('\r> ', fg='green') + "Send Wi-Fi information to device success.")
-                thread.message("The Wio now attempt to connect to Server...")
+                thread.stop('')
+                thread.join()
                 send_flag = True
         if send_flag:
             break
@@ -387,7 +393,6 @@ def cli(wio):
     USE:
         wio setup
     '''
-
     token = wio.config.get("token", None)
     mserver_url = wio.config.get("mserver", None)
     msvr_ip = wio.config.get("mserver_ip", None)
@@ -481,10 +486,9 @@ def cli(wio):
             d_name = r['name']
             check_connect(mserver_url, token, node_sn, d_name)
             return
-        click.echo(click.style('> ', fg='green') +
-            "I have detected a " +
-            click.style("Wio ", fg='green') +
-            "connected via USB.")
+            
+        click.echo(click.style('> ', fg='green') + "I have detected a " +
+            click.style("Wio ", fg='green') + "connected via USB.")
 
         r = serial_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key, port)
         if not r:
@@ -492,7 +496,7 @@ def cli(wio):
         d_name = r['name']
         check_connect(mserver_url, token, node_sn, d_name)
     elif board == WIO_NODE_V1_0:
-        r = upd_send(msvr_ip, xsvr_ip, node_sn, node_key)
+        r = upd_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key)
         if not r:
             return
         d_name = r['name']
