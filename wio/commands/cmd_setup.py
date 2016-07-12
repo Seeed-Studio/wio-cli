@@ -12,18 +12,19 @@ from wio.wio import WIO_NODE_V1_0
 from wio.wio import verify
 
 import requests
+import re
 import time
 import serial
 
 
-def get_new(api_prefix, token, board):
+def get_new(mserver_url, token, board):
     '''get node sn and key'''
-    thread = termui.waiting_echo("Getting message from main server...")
+    thread = termui.waiting_echo("Getting message from Server...")
     thread.daemon = True
     thread.start()
     try:
         params = {"name":"node000", "board":board, "access_token":token}
-        r = requests.post("%s%s" %(api_prefix, nodes_create_endpoint), params=params, timeout=10, verify=verify)
+        r = requests.post("%s%s" %(mserver_url, nodes_create_endpoint), params=params, timeout=10, verify=verify)
         r.raise_for_status()
         json_response = r.json()
     except requests.exceptions.HTTPError as e:
@@ -46,17 +47,17 @@ def get_new(api_prefix, token, board):
 
     return json_response
 
-def check_connect(api_prefix, token, node_sn, d_name):
+def check_connect(mserver_url, token, node_sn, d_name):
     thread = termui.waiting_echo('')
     thread.daemon = True
     thread.start()
     state_online = False
     for i in range(60):
-        thread.message("The Wio now attempt to connect to main server... [%s]" %(60-i))
+        thread.message("The Wio now attempt to connect to Server... [%s]" %(60-i))
         time.sleep(1)
         try:
             params = {"access_token":token}
-            r = requests.get("%s%s" %(api_prefix, node_list_endpoint), params=params)
+            r = requests.get("%s%s" %(mserver_url, node_list_endpoint), params=params)
             r.raise_for_status()
             json_response = r.json()
         except Exception as e:
@@ -64,7 +65,7 @@ def check_connect(api_prefix, token, node_sn, d_name):
 
         for n in json_response["nodes"]:
             if n["node_sn"] == node_sn and n["online"]:
-                click.echo(click.style('\r> ', fg='green') + "The Wio connect to main server success.              ")
+                click.echo(click.style('\r> ', fg='green') + "The Wio connect to Server success.              ")
                 thread.message("Setting Wio name...")
                 state_online = True
                 break
@@ -74,13 +75,13 @@ def check_connect(api_prefix, token, node_sn, d_name):
     if not state_online:
         thread.stop('')
         thread.join()
-        click.echo(click.style('\r>> ', fg='red') + "The Wio connect to main server failure.")
+        click.echo(click.style('\r>> ', fg='red') + "The Wio connect to Server failure.")
         click.secho("\n> Please check info you enter, Try again.", fg='white', bold=True)
         return None
 
     try:
         params = {"name":d_name,"node_sn":node_sn,"access_token":token}
-        r = requests.post("%s%s" %(api_prefix, nodes_rename_endpoint), params=params)
+        r = requests.post("%s%s" %(mserver_url, nodes_rename_endpoint), params=params)
         r.raise_for_status()
         json_response = r.json()
     except requests.exceptions.HTTPError as e:
@@ -204,7 +205,7 @@ def upd_send(msvr_ip, xsvr_ip, node_sn, node_key):
     else:
         return {'name':d_name}
 
-def serial_send(msvr_ip, xsvr_ip, node_sn, node_key, port):
+def serial_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key, port):
     ### check is configure mode?
     thread = termui.waiting_echo("Getting device information...")
     thread.daemon = True
@@ -338,18 +339,31 @@ def serial_send(msvr_ip, xsvr_ip, node_sn, node_key, port):
     thread.start()
 
     # send serial command
-    # msvr_ip = wio.config.get("mserver_ip", None)
-    # xsvr_ip = msvr_ip
+    ## get version
+    version = 1.1
+    with serial.Serial(port, 115200, timeout=10) as ser:
+        cmd = 'VERSION\r\n'
+        ser.write(cmd.encode('utf-8'))
+        res = ser.readline()
+        try:
+            version = float(re.match(r"([0-9]+.[0-9]+)", res).group(0))
+        except Exception as e:
+            version = 1.1
+
     send_flag = False
     while 1:
         with serial.Serial(port, 115200, timeout=10) as ser:
-            cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, msvr_ip, xsvr_ip)
+            if version <= 1.1:
+                cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr_ip, msvr_ip)
+            elif version >= 1.2:
+                cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr, msvr)
+            else:
+                cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr, msvr)
             # click.echo(cmd)
             ser.write(cmd.encode('utf-8'))
-            # while True:
             if "ok" in ser.readline():
                 click.echo(click.style('\r> ', fg='green') + "Send Wi-Fi information to device success.")
-                thread.message("The Wio now attempt to connect to main server...")
+                thread.message("The Wio now attempt to connect to Server...")
                 send_flag = True
         if send_flag:
             break
@@ -375,14 +389,15 @@ def cli(wio):
     '''
 
     token = wio.config.get("token", None)
-    api_prefix = wio.config.get("mserver", None)
+    mserver_url = wio.config.get("mserver", None)
     msvr_ip = wio.config.get("mserver_ip", None)
-    xsvr_ip = msvr_ip
-    if not api_prefix or not token:
+    if not mserver_url or not token:
         click.echo(click.style('>> ', fg='red') + "Please login, use " +
             click.style("wio login", fg='green'))
         return
-
+    msvr = mserver_url.split("//")[1]
+    xsvr = msvr
+    xsvr_ip = msvr_ip
     board = ''
 
     click.secho('> ', fg='green', nl=False)
@@ -397,7 +412,7 @@ def cli(wio):
         click.style("Please make sure you are ", fg='white') +
         click.style("connected ", fg='green') +
         click.style("to the ", fg='white') +
-        click.style("main server", fg='green'))
+        click.style("Server", fg='green'))
     click.echo()
     click.secho('? ', fg='green', nl=False)
     if not click.confirm(click.style('Would you like continue?', bold=True), default=True):
@@ -416,7 +431,7 @@ def cli(wio):
         else:
             click.echo(click.style('>> ', fg='red') + "invalid input.")
 
-    r = get_new(api_prefix, token, board)
+    r = get_new(mserver_url, token, board)
     if not r:
         return
     node_key = r["node_key"]
@@ -464,21 +479,21 @@ def cli(wio):
             if not r:
                 return
             d_name = r['name']
-            check_connect(api_prefix, token, node_sn, d_name)
+            check_connect(mserver_url, token, node_sn, d_name)
             return
         click.echo(click.style('> ', fg='green') +
             "I have detected a " +
             click.style("Wio ", fg='green') +
             "connected via USB.")
 
-        r = serial_send(msvr_ip, xsvr_ip, node_sn, node_key, port)
+        r = serial_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key, port)
         if not r:
             return
         d_name = r['name']
-        check_connect(api_prefix, token, node_sn, d_name)
+        check_connect(mserver_url, token, node_sn, d_name)
     elif board == WIO_NODE_V1_0:
         r = upd_send(msvr_ip, xsvr_ip, node_sn, node_key)
         if not r:
             return
         d_name = r['name']
-        check_connect(api_prefix, token, node_sn, d_name)
+        check_connect(mserver_url, token, node_sn, d_name)
