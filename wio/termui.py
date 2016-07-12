@@ -50,9 +50,9 @@ def tree(list):
         click.echo('|   |-- ', nl=False)
         click.echo('token: ' + l['node_key'])
         click.echo('|   |-- ', nl=False)
-        click.echo('resource url: ' + l['resources'])
+        click.echo('API url: ' + l['resources'])
         click.echo('|   |-- ', nl=False)
-        click.echo('well_known: ')
+        click.echo('APIs: ')
         for api in l['well_known']:
             click.echo('|       |-- ', nl=False)
             click.echo(api)
@@ -68,9 +68,9 @@ def tree(list):
     click.echo('    |-- ', nl=False)
     click.echo('token: ' + l['node_key'])
     click.echo('    |-- ', nl=False)
-    click.echo('resource url: ' + l['resources'])
+    click.echo('API url: ' + l['resources'])
     click.echo('    |-- ', nl=False)
-    click.echo('well_known: ')
+    click.echo('APIs: ')
     for api in l['well_known']:
         click.echo('        |-- ', nl=False)
         click.echo(api)
