@@ -1,3 +1,8 @@
+# wio-cli
+venv
+test
+wio/config.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -57,7 +62,3 @@ docs/_build/
 
 # PyBuilder
 target/
-
-# tenwong add
-venv
-test

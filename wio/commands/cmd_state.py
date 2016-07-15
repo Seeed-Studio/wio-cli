@@ -9,28 +9,26 @@ def cli(wio):
 
     \b
     DOES:
-        Display login email, token, main server ip and url.
+        Display login email, token, server url.
 
     \b
     USE:
         wio state
     '''
     user_token = wio.config.get("token", None)
-    api_prefix = wio.config.get("mserver", None)
-    if not api_prefix or not user_token:
+    mserver_url = wio.config.get("mserver", None)
+    if not mserver_url or not user_token:
         click.echo(click.style('>> ', fg='red') + "Please login, use " +
             click.style("wio login", fg='green'))
         return
 
     email = wio.config.get("email",None)
-    mserver = wio.config.get("mserver",None)
-    mserver_ip = wio.config.get("mserver_ip",None)
+    server = wio.config.get("server",None)
     token = wio.config.get("token",None)
     click.secho('> ', fg='green', nl=False)
-    click.echo("email: " + click.style(email, fg='green', bold=True))
+    click.echo("server: " + click.style(server, fg='green', bold=True) + ', ' +
+        click.style(mserver_url, fg='green', bold=True))
     click.secho('> ', fg='green', nl=False)
-    click.echo("token: " + click.style(token, fg='green', bold=True))
+    click.echo("email:  " + click.style(email, fg='green', bold=True))
     click.secho('> ', fg='green', nl=False)
-    click.echo("main server: " + click.style(mserver, fg='green', bold=True))
-    click.secho('> ', fg='green', nl=False)
-    click.echo("main server ip: " + click.style(mserver_ip, fg='green', bold=True))
+    click.echo("token:  " + click.style(token, fg='green', bold=True))
