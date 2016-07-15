@@ -7,6 +7,7 @@ from wio import termui
 from wio import config
 from wio.wio import pass_wio
 from wio.wio import login_endpoint
+from wio.wio import ext_user_endpoint
 from wio.wio import verify
 from wio.wio import choise_server
 
@@ -49,8 +50,10 @@ def cli(wio):
             json_response = login_wio(server_url, email, password)
             token = json_response['token']
         else:
-            json_response = login_seeed(email, password)
-            token = json_response['data']['token']
+            res = login_seeed(email, password)
+            token = res['data']['token']
+            user_id = res['data']['userid']
+            ext_user(wio.config.get("mserver"), email, user_id, token)
     except Exception as e:
         thread.stop('')
         thread.join()
@@ -91,6 +94,21 @@ def login_seeed(email, passwd):
     res = r.json()
     if res.get('errorcode') != 0:
         raise Exception('error', res.get('msgs'))
+    return res
+    
+def ext_user(server_url, email, user_id, token):
+    payload = dict(
+        email=email,
+        bind_id=user_id,
+        token=token,
+        bind_region=config.WIO_REGION,
+        secret=config.WIO_SECKET
+        )
+    r = requests.post("%s%s" %(server_url, ext_user_endpoint), data=payload,
+        timeout=10, verify=verify)
+    res = r.json()
+    if r.status_code != 200:
+        raise Exception('error', res.get('error'))
     return res
     
 def login_wio(server_url, email, passwd):
