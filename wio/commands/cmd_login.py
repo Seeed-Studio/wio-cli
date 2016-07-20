@@ -77,7 +77,7 @@ def get_sign(url, time):
     sign = ''
     for l in li:
         sign += l
-    h = hashlib.sha1(sign)
+    h = hashlib.sha1(sign.encode('utf-8'))
     return h.hexdigest()
     
 def login_seeed(email, passwd):

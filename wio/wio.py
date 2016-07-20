@@ -10,7 +10,7 @@ import signal
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 
-version = '0.2.0'
+version = '0.2.1'
 
 WIO_LINK_V1_0 = 'Wio Link v1.0'
 WIO_NODE_V1_0 = 'Wio Node v1.0'
