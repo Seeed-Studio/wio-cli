@@ -10,13 +10,14 @@ import signal
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 
-version = '0.1.0'
+version = '0.2.1'
 
 WIO_LINK_V1_0 = 'Wio Link v1.0'
 WIO_NODE_V1_0 = 'Wio Node v1.0'
 boards = [WIO_LINK_V1_0, WIO_NODE_V1_0]
 
 login_endpoint = "/v1/user/login"
+ext_user_endpoint = "/v1/ext_users"
 node_list_endpoint = "/v1/nodes/list"
 well_known_endpoint = "/v1/node/.well-known"
 nodes_create_endpoint = "/v1/nodes/create"

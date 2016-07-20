@@ -1,17 +1,24 @@
 ===============================
-Wio Link Command Line Interface
+Wio Link Command Line Toolset
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.1.0-green.svg
+.. image:: https://img.shields.io/badge/pypi-0.2.0-green.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 
 Getting Started
 ===============
+**Note:** If can't find the USB device, should be install USB to Serial driver first, `download here`_
+
+.. _download here: https://www.silabs.com/products/mcu/Pages/USBtoUARTBridgeVCPDrivers.aspx
 
 Wio Link Client can be installed from PyPI using pip::
 
     pip install wio-cli
+
+If you have already installed the library, execute the following command to ensure you’re using the latest library::
+
+    pip install wio-cli --upgrade
 
 A list of global options and supported, commands is shown with ``--help``::
 
@@ -20,6 +27,8 @@ A list of global options and supported, commands is shown with ``--help``::
 More info, that can be used to get help text for a specific command::
 
     wio <command> --help
+
+Getting Started with Wio Link Command Line Toolset: http://www.seeedstudio.com/recipe/1136-getting-started-with-wio-link-command-line-toolset.html)
 
 Command
 ==========
