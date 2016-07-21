@@ -200,7 +200,7 @@ def upd_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key):
         cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr, msvr)
     else:
         cmd = "APCFG: %s\t%s\t%s\t%s\t%s\t%s\t\r\n" %(ap, ap_pwd, node_key, node_sn, xsvr, msvr)
-    click.echo(cmd)
+    # click.echo(cmd)
     result = udp.send(cmd)
     thread.stop('')
     thread.join()
@@ -480,7 +480,7 @@ def cli(wio):
                 click.style('Would you like to enter Wi-Fi setup mode?', bold=True), default=True)
 
             #### udp setup
-            r = upd_send(msvr_ip, xsvr_ip, node_sn, node_key)
+            r = upd_send(msvr, msvr_ip, xsvr, xsvr_ip, node_sn, node_key)
             if not r:
                 return
             d_name = r['name']
