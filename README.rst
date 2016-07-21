@@ -2,9 +2,11 @@
 Wio Link Command Line Toolset
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.2.0-green.svg
+.. image:: https://img.shields.io/badge/pypi-0.2.2-green.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
+
+CLI is used to add WioLink and WioNode, list the Wio device end so on.
 
 Getting Started
 ===============
@@ -14,19 +16,26 @@ Getting Started
 
 Wio Link Client can be installed from PyPI using pip::
 
-    pip install wio-cli
+    $ pip install wio-cli
 
+On Python3, use virtualenv to install
+    
+    $ virtualenv -p python2 env2
+    $ source env2/bin/activate
+    $ pip install wio-cli
+    $ wio --version
+    
 If you have already installed the library, execute the following command to ensure you’re using the latest library::
 
     pip install wio-cli --upgrade
 
 A list of global options and supported, commands is shown with ``--help``::
 
-    wio --help
+    $ wio --help
 
 More info, that can be used to get help text for a specific command::
 
-    wio <command> --help
+    $ wio <command> --help
 
 Getting Started with Wio Link Command Line Toolset: http://www.seeedstudio.com/recipe/1136-getting-started-with-wio-link-command-line-toolset.html)
 
@@ -36,9 +45,13 @@ Login with your Wiolink account::
 
     wio login
 
+Add a new device with USB connect::
+
+    $ wio setup
+        
 Login state::
 
-    wio state
+    $ wio state
 
     example:
     $ wio state
@@ -49,7 +62,7 @@ Login state::
 
 Displays a list of your devices and their APIs::
 
-    wio list
+    $ wio list
 
     example:
     $ wio list
@@ -64,19 +77,16 @@ Displays a list of your devices and their APIs::
 
 Request api, return json::
 
-    wio call <token> <method> <endpoint>
+    $ wio call <token> <method> <endpoint>
 
     example:
     $ wio call c74a110c2e397823f0ce53ef669d5b7f  GET /v1/node/GroveMoistureA0/moisture
     {u'moisture': 0}
 
-Add a new device with USB connect::
-
-    wio setup
 
 Delete a device::
 
-    wio delete <device_sn>
+    $ wio delete <device_sn>
 
     example:
     $wio delete 2885b2cab8abc5fb8e229e4a77bf5e4d
@@ -84,14 +94,14 @@ Delete a device::
 
 Config your main server::
 
-    wio config mserver
+    $ wio config mserver
 
 
 Serial port permissions
 ==========
 1. now as normal user from terminal:
 
-    ls -l /dev/ttyUSB*
+    $ ls -l /dev/ttyUSB*
 
 you will get something like:
 
@@ -101,8 +111,8 @@ The "0" might be a different number, or multiple entries might be returned. In t
 
 2. Now we just need to add our user to the group:
 
-    sudo usermod -a -G group-name username
+    $ sudo usermod -a -G group-name username
 
 where group-name is the data found before, and username is your linux user name. You will need to log out and in again for this change to take effect. such as:
 
-    sudo usermod -a -G dialout tengwang
+    $ sudo usermod -a -G dialout tengwang

@@ -23,8 +23,8 @@ setup(
     # include_package_data=True,
     install_requires=[
         'click',
-        'requests',
-        'pyserial',
+        'requests>=2.9.0',
+        'pyserial>=3.1.1',
     ],
     entry_points='''
         [console_scripts]
