@@ -15,6 +15,10 @@ import requests
 import re
 import time
 import serial
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 
 def get_new(mserver_url, token, board):
@@ -400,7 +404,7 @@ def cli(wio):
         click.echo(click.style('>> ', fg='red') + "Please login, use " +
             click.style("wio login", fg='green'))
         return
-    msvr = mserver_url.split("//")[1]
+    msvr = urlparse(mserver_url).hostname
     xsvr = msvr
     xsvr_ip = msvr_ip
     board = ''

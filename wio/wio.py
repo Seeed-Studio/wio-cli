@@ -8,6 +8,10 @@ import click
 import requests
 import signal
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 
 version = '0.2.1'
@@ -133,11 +137,12 @@ def choise_server(wio):
 
     while 1:
         click.secho('? ', fg='green', nl=False)
-        mserver = click.prompt(click.style("Please enter Customize Server url(e.g. https://192.168.31.2)", bold=True))
+        mserver = click.prompt(click.style("Please enter Customize Server url\n(e.g. https://us.wio.seeed.cc or http://192.168.1.10:8080)", bold=True))
         try:
-            mserver_ip = socket.gethostbyname(mserver.split('//')[1])
+            hostname = urlparse(mserver).hostname
+            mserver_ip = socket.gethostbyname(hostname)
             break
-        except IndexError:
+        except (IndexError, TypeError):
             click.secho(">> url is not correct format!", fg='red')
             continue
         except Exception as e:
