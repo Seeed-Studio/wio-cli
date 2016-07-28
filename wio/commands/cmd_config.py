@@ -23,7 +23,7 @@ def cli(wio, get_debug, debug):
 
     \b
     EXAMPLE:
-        wio config --debug on/off, enable/disable wio debug
+        wio config --debug [on|off], enable/disable wio debug
         wio config --get-debug, get wio debug status
     '''
     if debug:

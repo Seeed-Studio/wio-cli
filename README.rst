@@ -2,7 +2,7 @@
 Wio Link Command Line Toolset
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.2.2-green.svg
+.. image:: https://img.shields.io/badge/pypi-0.3.0-green.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 
@@ -44,7 +44,7 @@ Command
 ==========
 Login with your Wiolink account::
 
-    wio login
+    $wio login
 
 Add a new device with USB connect::
 
@@ -93,10 +93,10 @@ Delete a device::
     $wio delete 2885b2cab8abc5fb8e229e4a77bf5e4d
     >> Delete device commplete!
 
-Config your main server::
+Config your device setting::
 
-    $ wio config mserver
-
+    $wio config --debug [on|off], enable/disable wio debug
+    $wio config --get-debug, get wio debug status
 
 Serial port permissions
 ==========
