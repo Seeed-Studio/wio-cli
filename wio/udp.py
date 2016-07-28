@@ -27,7 +27,7 @@ def udp_list():
             continue
         except:
             break
-
+            
         if flag:
             break
     s.close()
@@ -66,7 +66,34 @@ def udp_version():
         return version
     else:
         return version
-        
+    
+def udp_debug():
+    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    s.settimeout(3)
+    flag = False
+    while 1:
+        s.sendto('DEBUG', addr)
+        try:
+            while 1:
+                data, a = s.recvfrom(1024)
+                flag = True
+                break
+        except socket.timeout:
+            continue
+        except:
+            break
+
+        if flag:
+            break
+    s.close()
+
+    if flag:
+        try:
+            debug = re.match(r"([0-9])", data).group(0)
+            return debug
+        except Exception as e:
+            raise e
+
 def send(cmd):
     s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     s.settimeout(3)
