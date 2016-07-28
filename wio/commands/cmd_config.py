@@ -5,13 +5,13 @@ from wio import udp
 
 @click.command()
 # @click.option('--APCFG', nargs=2)
-@click.option('--DEBUG', is_flag=True, help="12")
-@click.option('--ENDEBUG', type=click.Choice(['on', 'off']), help="12")
+@click.option('--get-debug', is_flag=True, help="get debug status")
+@click.option('--debug', type=click.Choice(['on', 'off']), help="enable/disable debug")
 # @click.option('--VERSION', is_flag=True)
 # @click.option('--Blank?', is_flag=True)
 # @click.option('-p') #TODO(ten): support serial
 @pass_wio
-def cli(wio, debug, endebug):
+def cli(wio, get_debug, debug):
     '''
     Change setting of device.
 
@@ -23,41 +23,33 @@ def cli(wio, debug, endebug):
 
     \b
     EXAMPLE:
-        wio config --ENDEBUG on/off, enable/disable wio debug
-        wio config --DEBUG, check wio debug state
+        wio config --debug on/off, enable/disable wio debug
+        wio config --get-debug, get wio debug status
     '''
-    # print apcfg, debug, version
-    # print endebug, debug
-    if endebug:
-        cmd = ''
-        if endebug == "on":
+    if debug:
+        if debug == "on":
             cmd = "ENDEBUG: 1"
-        elif endebug == "off":
+        elif debug == "off":
             cmd = "ENDEBUG: 0"
-        else:
-            return click.echo("Use param on or off")
-        # print cmd
         if not cmd:
             return click.echo("Setting failure!!")
         result = udp.send(cmd)
         if not result:
             return click.echo("Setting failure!!")
         click.echo("Setting success!!")
-        
-    if debug:
+    
+    elif get_debug:
         try:
             result = udp.udp_debug()
-            # print 1, result
         except Exception as e:
             return click.echo("Get state failure!!")
-        
+    
         if result == "1":
-            click.echo("DEBUG: on")
+            click.echo("debug: on")
         elif result == '0':
-            click.echo("DEBUG: off")
+            click.echo("debug: off")
         else:
             click.echo("Get state failure!!")
-        
-        
-        
-        
+            
+    else:
+        pass #TODO(ten) add tip
