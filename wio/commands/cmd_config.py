@@ -32,24 +32,43 @@ def cli(wio, get_debug, debug):
         elif debug == "off":
             cmd = "ENDEBUG: 0"
         if not cmd:
-            return click.echo("Setting failure!!")
+            return debug_error()
         result = udp.send(cmd)
         if not result:
-            return click.echo("Setting failure!!")
+            return debug_error()
         click.echo("Setting success!!")
     
     elif get_debug:
         try:
             result = udp.udp_debug()
         except Exception as e:
-            return click.echo("Get state failure!!")
+            return get_debug_error()
     
         if result == "1":
             click.echo("debug: on")
         elif result == '0':
             click.echo("debug: off")
         else:
-            click.echo("Get state failure!!")
+            return get_debug_error()
             
     else:
-        pass #TODO(ten) add tip
+        click.echo("Note:")
+        click.echo("    1. Ensure your device is Configure Mode.")
+        click.echo("    2. Change your computer network to Wio's AP.")
+        click.echo()
+        click.echo("Use:")
+        click.echo("    wio config --debug [on|off], enable/disable wio debug")
+        click.echo("    wio config --get-debug, get wio debug status")
+        
+def debug_error():
+    click.echo("Setting failure!!")
+    error_tip()
+
+def get_debug_error():
+    click.echo("Get debug status failure!!")
+    error_tip()
+
+def error_tip():
+        click.echo("Note:")
+        click.echo("    1. Ensure your device is Configure Mode.")
+        click.echo("    2. Change your computer network to Wio's AP.")
