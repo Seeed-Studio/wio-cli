@@ -34,31 +34,46 @@ def cli(wio):
             choise_server(wio)
     else:
         choise_server(wio)
-        
-    email = click.prompt(click.style('? ', fg='green') +
-        click.style('Please enter your email address', bold=True), type=str)
-    password = click.prompt(click.style('? ', fg='green') +
-        click.style('Please enter your password', bold=True), hide_input=True, type=str)
 
-    thread = termui.waiting_echo("Sending login details...")
-    thread.daemon = True
-    thread.start()
-            
-    try:
-        if wio.config.get("server") == 'Customize':
-            server_url = wio.config.get("mserver")
+    if wio.config.get("server") == 'Customize':
+        email = click.prompt(click.style('? ', fg='green') +
+            click.style('Please enter your email address', bold=True), type=str)
+        password = click.prompt(click.style('? ', fg='green') +
+            click.style('Please enter your password', bold=True), hide_input=True, type=str)
+        server_url = wio.config.get("mserver")
+        
+        thread = termui.waiting_echo("Sending login details...")
+        thread.daemon = True
+        thread.start()
+        try:
             json_response = login_wio(server_url, email, password)
             token = json_response['token']
-        else:
-            res = login_seeed(email, password)
-            token = res['data']['token']
-            user_id = res['data']['userid']
-            ext_user(wio.config.get("mserver"), email, user_id, token)
-    except Exception as e:
-        thread.stop('')
-        thread.join()
-        click.secho(">> %s" %e, fg='red')
-        return
+        except Exception as e:
+            thread.stop('')
+            thread.join()
+            click.secho(">> %s" %e, fg='red')
+            return
+    else:
+        token = click.prompt(click.style('? ', fg='green') +
+            click.style('First get wio user token from ', bold=True) +
+            click.style('https://wio.seeed.io/login', bold=True, fg='green') +
+            click.style('\n? ', fg='green') +
+            click.style('Then enter token', bold=True), type=str)
+        email = ''
+        thread = termui.waiting_echo("Checking validity of token...")
+        thread.daemon = True
+        thread.start()
+        try:
+            check_token(wio.config.get("mserver"), token)
+        except Exception as e:
+            thread.stop('')
+            thread.join()
+            click.secho(">> %s" %e, fg='red')
+            return
+        # res = login_seeed(email, password) #TODO(ten): next time delete
+        # token = res['data']['token']
+        # user_id = res['data']['userid']
+        # ext_user(wio.config.get("mserver"), email, user_id, token)
 
     wio.set_config('email', email)
     wio.set_config('token', token)
@@ -66,8 +81,18 @@ def cli(wio):
     thread.stop('')
     thread.join()
     click.secho("\r> ", fg='green', nl=False)
-    click.echo("Successfully completed login!")
+    click.echo("Successfully completed login! Check state, see 'wio state'")
 
+def check_token(server_url, token):
+    url = server_url + '/v1/nodes/list?access_token=' + token
+    try:
+        r = requests.get(url)
+        if r.status_code is not 200:
+            raise ValueError(r.json()['error'])
+        return True
+    except:
+        raise
+     
 def get_sign(url, time):
     APPID = config.SEEED_APPID
     APPKEY = config.SEEED_APPKEY

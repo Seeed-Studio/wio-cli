@@ -137,7 +137,7 @@ def choise_server(wio):
 
     while 1:
         click.secho('? ', fg='green', nl=False)
-        mserver = click.prompt(click.style("Please enter Customize Server url\n(e.g. https://us.wio.seeed.cc or http://192.168.1.10:8080)", bold=True))
+        mserver = click.prompt(click.style("Please enter Customize Server url\n(e.g. https://us.wio.seeed.io or http://192.168.1.10:8080)", bold=True))
         try:
             hostname = urlparse(mserver).hostname
             mserver_ip = socket.gethostbyname(hostname)
