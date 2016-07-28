@@ -6,7 +6,7 @@ Wio Link Command Line Toolset
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 
-CLI is used to add WioLink and WioNode, list the Wio device end so on.
+CLI is used to add WioLink and WioNode, list the Wio device and so on.
 
 Getting Started
 ===============
@@ -18,12 +18,13 @@ Wio Link Client can be installed from PyPI using pip::
 
     $ pip install wio-cli
 
-On Python3, use virtualenv to install
-    
+On Python3, use virtualenv to install::
+
     $ virtualenv -p python2 env2
     $ source env2/bin/activate
     $ pip install wio-cli
     $ wio --version
+
     
 If you have already installed the library, execute the following command to ensure you’re using the latest library::
 
