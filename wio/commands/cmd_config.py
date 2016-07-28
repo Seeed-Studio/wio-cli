@@ -36,7 +36,7 @@ def cli(wio, get_debug, debug):
         result = udp.send(cmd)
         if not result:
             return debug_error()
-        click.echo("Setting success!!")
+        click.echo("Setting success!! Device will reboot!!")
     
     elif get_debug:
         try:
