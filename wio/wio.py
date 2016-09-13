@@ -108,9 +108,9 @@ def cli(ctx):
 def choise_server(wio):
     while True:
         click.echo("1.) Global Server (New)[https://us.wio.seeed.io]")
-        click.echo("2.) Global Server (Old)[https://iot.seeed.cc]")
-        click.echo("3.) Chinese Server [https://cn.wio.seeed.io]")
-        click.echo("4.) Customize Server")
+        # click.echo("2.) Global Server (Old)[https://iot.seeed.cc]")
+        click.echo("2.) Chinese Server [https://cn.wio.seeed.io]")
+        click.echo("3.) Customize Server")
         click.secho('? ', fg='green', nl=False)
         server = click.prompt(click.style('Please choice server', bold=True), type=int)
         if server == 1:
@@ -118,17 +118,17 @@ def choise_server(wio):
             wio.set_config("server","Global")
             wio.set_config("mserver_ip","54.186.73.152")
             return
+        # elif server == 2:
+        #     wio.set_config("mserver","https://iot.seeed.cc")
+        #     wio.set_config("server","Global")
+        #     wio.set_config("mserver_ip","45.79.4.239")
+        #     return
         elif server == 2:
-            wio.set_config("mserver","https://iot.seeed.cc")
-            wio.set_config("server","Global")
-            wio.set_config("mserver_ip","45.79.4.239")
-            return
-        elif server == 3:
             wio.set_config("mserver","https://cn.wio.seeed.io")
             wio.set_config("server","Chinese")
             wio.set_config("mserver_ip","120.25.216.117")
             return
-        elif server == 4:
+        elif server == 3:
             wio.set_config("server","Customize")
             break
         else:
