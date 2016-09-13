@@ -2,7 +2,7 @@
 Wio Link Command Line Toolset
 ===============================
 
-.. image:: https://img.shields.io/badge/pypi-0.3.0-green.svg
+.. image:: https://img.shields.io/badge/pypi-0.3.1-green.svg
     :target: https://pypi.python.org/pypi/wio-cli/
     :alt: Latest Version
 
