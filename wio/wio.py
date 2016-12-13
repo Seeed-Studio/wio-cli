@@ -14,7 +14,7 @@ except ImportError:
     from urlparse import urlparse
 
 
-version = '0.3.1'
+version = '0.3.2'
 
 WIO_LINK_V1_0 = 'Wio Link v1.0'
 WIO_NODE_V1_0 = 'Wio Node v1.0'

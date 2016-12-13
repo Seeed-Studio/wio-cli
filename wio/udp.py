@@ -119,4 +119,32 @@ def send(cmd):
 
     return flag
 
-# print udp_list()
+def common_send(cmd):
+    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    s.settimeout(1)
+    cmd = cmd.replace(r"\t", "\t")
+    cmd = cmd.replace(r"\n", "\n")
+    cmd = cmd.replace(r"\r", "\r")
+    for i in range(5):
+        # print "try: ", i
+        result = ""
+        flag = False
+        try:
+            s.sendto(cmd, addr)
+            while 1:
+                data, adr = s.recvfrom(1024)
+                # print data.encode('string_escape')
+                result += data
+                if data == "\r\n" or data == "ok\r\n" or "192.168.4.1\r\n" in data:
+                    flag = True
+                    break
+        except socket.timeout:
+            continue
+        except Exception as e:
+            print e
+            break
+        if flag:
+            break
+    s.close()
+        
+    return result if flag else None
