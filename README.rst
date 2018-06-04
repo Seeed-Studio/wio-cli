@@ -14,11 +14,11 @@ Getting Started
 
 .. _download here: https://www.silabs.com/products/mcu/Pages/USBtoUARTBridgeVCPDrivers.aspx
 
-Wio Link Client can be installed from PyPI using pip::
+Wio Link Client can be installed from PyPI using pip on Python 2:
 
     $ pip install wio-cli
 
-On Python3, use virtualenv to install::
+On Python 3, use virtualenv to install::
 
     $ virtualenv -p python2 env2
     $ source env2/bin/activate
